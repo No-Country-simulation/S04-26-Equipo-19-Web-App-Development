@@ -1,11 +1,12 @@
+import Link from "next/link";
+import StatCard from "@/components/dashboard/StatCard";
+import IncidentCard from "@/components/incidents/IncidentCard";
 import { incidents } from "@/data/incidents";
 
-// Página de dashboard.
-// Resume el estado general de los incidentes usando datos simulados.
+// Página principal de métricas operativas.
+// Usa mock data hasta que el backend exponga endpoints reales.
 
 export default function DashboardPage() {
-  // Cálculos simples derivados del array de incidentes.
-  // Cuando exista backend, estos datos podrían venir directamente desde un endpoint de métricas.
   const totalIncidents = incidents.length;
 
   const openIncidents = incidents.filter(
@@ -20,52 +21,87 @@ export default function DashboardPage() {
     (incident) => incident.status === "Cerrado"
   ).length;
 
+  const latestIncidents = incidents.slice(0, 2);
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+    <main className="px-6 py-10 text-white">
       <section className="mx-auto max-w-6xl">
-        {/* Encabezado de la página */}
-        <header>
-          <p className="text-sm font-medium text-cyan-300">Dashboard</p>
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-medium text-cyan-300">Dashboard</p>
 
-          <h1 className="mt-2 text-4xl font-bold">Resumen operativo</h1>
+            <h1 className="mt-2 text-4xl font-bold">Resumen operativo</h1>
 
-          <p className="mt-2 max-w-2xl text-slate-400">
-            Vista general de incidentes reportados, estados actuales y
-            seguimiento operativo.
-          </p>
+            <p className="mt-2 max-w-2xl text-slate-400">
+              Vista general de incidentes reportados, estados actuales y
+              seguimiento operativo del MVP.
+            </p>
+          </div>
+
+          <Link
+            href="/incidents/new"
+            className="w-fit rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+          >
+            Nuevo incidente
+          </Link>
         </header>
 
-        {/* Cards de métricas principales */}
         <section className="mt-8 grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-slate-400">Total de incidentes</p>
-            <p className="mt-2 text-3xl font-bold">{totalIncidents}</p>
-          </article>
+          <StatCard
+            label="Total"
+            value={totalIncidents}
+            helper="Incidentes cargados"
+            tone="cyan"
+          />
 
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-slate-400">Abiertos</p>
-            <p className="mt-2 text-3xl font-bold">{openIncidents}</p>
-          </article>
+          <StatCard
+            label="Abiertos"
+            value={openIncidents}
+            helper="Requieren atención"
+            tone="red"
+          />
 
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-slate-400">En progreso</p>
-            <p className="mt-2 text-3xl font-bold">{inProgressIncidents}</p>
-          </article>
+          <StatCard
+            label="En progreso"
+            value={inProgressIncidents}
+            helper="Ya asignados"
+            tone="amber"
+          />
 
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-slate-400">Cerrados</p>
-            <p className="mt-2 text-3xl font-bold">{closedIncidents}</p>
-          </article>
+          <StatCard
+            label="Cerrados"
+            value={closedIncidents}
+            helper="Resueltos"
+            tone="green"
+          />
         </section>
 
-        {/* Sección futura para gráficos o reportes */}
-        <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-xl font-semibold">Análisis inicial</h2>
+        <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+          <div>
+            <h2 className="text-xl font-semibold">Incidentes recientes</h2>
 
-          <p className="mt-2 text-slate-400">
-            En esta sección se podrán agregar gráficos por estado, área, tipo de
-            incidente y tiempos de resolución.
-          </p>
+            <div className="mt-4 grid gap-4">
+              {latestIncidents.map((incident) => (
+                <IncidentCard key={incident.id} incident={incident} />
+              ))}
+            </div>
+          </div>
+
+          <aside className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-xl font-semibold">Lectura rápida</h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              El objetivo del MVP es validar el flujo base: reportar, visualizar
+              estado, asignar responsable y dejar trazabilidad.
+            </p>
+
+            <div className="mt-5 space-y-3 text-sm text-slate-300">
+              <p>• Reporte mobile-first</p>
+              <p>• Seguimiento por estado</p>
+              <p>• Métricas iniciales</p>
+              <p>• Base lista para conectar backend</p>
+            </div>
+          </aside>
         </section>
       </section>
     </main>
