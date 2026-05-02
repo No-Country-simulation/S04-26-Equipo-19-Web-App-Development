@@ -1,5 +1,6 @@
 import StatusBadge from "./StatusBadge";
 import { formatDate } from "@/utils/formatDate";
+import Link from "next/link";
 
 // Card reutilizable para mostrar la información principal de un incidente.
 // Se usa en el listado y puede reutilizarse luego en dashboard o vistas detalle.
@@ -38,9 +39,7 @@ export default function IncidentCard({ incident }) {
 
         <div>
           <p className="text-slate-500">Prioridad</p>
-          <p className="mt-1 font-medium text-slate-200">
-            {incident.priority}
-          </p>
+          <p className="mt-1 font-medium text-slate-200">{incident.priority}</p>
         </div>
 
         <div>
@@ -55,6 +54,14 @@ export default function IncidentCard({ incident }) {
       <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-500">
         Reportado: {formatDate(incident.createdAt)}
       </div>
+
+      <Link
+        href={`/incidents/${incident.id}`}
+        className="mt-4 inline-flex w-fit rounded-xl border border-cyan-400/30 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/10 hover:text-cyan-200"
+      >
+        Ver detalle
+      </Link>
+
     </article>
   );
 }
