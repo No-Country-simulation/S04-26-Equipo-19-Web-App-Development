@@ -1,48 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { technicians } from "@/constants/technicians";
-
-// Key usada para guardar asignaciones locales en el navegador.
-// Esto simula persistencia hasta que el backend esté disponible.
-const STORAGE_KEY = "opscore-incident-assignments";
-
-// Centralizamos el texto del estado para evitar errores de tipeo.
-// Debe coincidir con los estados usados en badges, filtros y métricas.
-const INCIDENT_STATUS = {
-  IN_PROGRESS: "En proceso",
-};
-
-/**
- * Lee las asignaciones guardadas en localStorage.
- *
- * Usamos try/catch porque localStorage puede fallar si:
- * - el JSON está corrupto,
- * - el navegador bloquea almacenamiento,
- * - o el usuario limpia datos parcialmente.
- */
-function getStoredAssignments() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch (error) {
-    console.error("Error reading incident assignments from localStorage:", error);
-    return {};
-  }
-}
-
-/**
- * Guarda las asignaciones actualizadas en localStorage.
- *
- * En el futuro esta función debería reemplazarse por una llamada real:
- * PATCH /api/incidents/:id/assign
- */
-function saveStoredAssignments(assignments) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
-  } catch (error) {
-    console.error("Error saving incident assignments in localStorage:", error);
-  }
-}
+import {
+  getIncidentUpdateById,
+  INCIDENT_STATUS,
+  saveIncidentAssignment,
+} from "@/lib/incidentStorage";
 
 /**
  * Formulario para asignar un técnico responsable a un incidente.
@@ -55,27 +20,24 @@ function saveStoredAssignments(assignments) {
 export default function AssignTechnicianForm({
   incidentId,
   currentAssignedTo = "Sin asignar",
-  currentStatus = "Abierto",
+  currentStatus = INCIDENT_STATUS.OPEN,
 }) {
   const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
   const [assignedTo, setAssignedTo] = useState(currentAssignedTo);
   const [status, setStatus] = useState(currentStatus);
 
   /**
-   * Al montar el componente, verificamos si este incidente ya tenía
-   * una asignación guardada localmente.
-   *
-   * Esto permite que la asignación se mantenga aunque el usuario recargue.
+   * Al cargar el componente, revisamos si este incidente ya tiene cambios
+   * guardados localmente. Si los tiene, mostramos esos valores actualizados.
    */
   useEffect(() => {
-    const savedAssignments = getStoredAssignments();
-    const savedIncident = savedAssignments[incidentId];
+    const savedIncident = getIncidentUpdateById(incidentId);
 
     if (!savedIncident) return;
 
-    setAssignedTo(savedIncident.assignedTo);
-    setStatus(savedIncident.status);
-  }, [incidentId]);
+    setAssignedTo(savedIncident.assignedTo || currentAssignedTo);
+    setStatus(savedIncident.status || currentStatus);
+  }, [incidentId, currentAssignedTo, currentStatus]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -88,16 +50,9 @@ export default function AssignTechnicianForm({
 
     if (!selectedTechnician) return;
 
-    const savedAssignments = getStoredAssignments();
-
-    const updatedIncident = {
+    const updatedIncident = saveIncidentAssignment({
+      incidentId,
       assignedTo: selectedTechnician.name,
-      status: INCIDENT_STATUS.IN_PROGRESS,
-    };
-
-    saveStoredAssignments({
-      ...savedAssignments,
-      [incidentId]: updatedIncident,
     });
 
     setAssignedTo(updatedIncident.assignedTo);
@@ -124,17 +79,13 @@ export default function AssignTechnicianForm({
         </p>
       </div>
 
-      {/* Estado actual de la asignación.
-          Por ahora viene de localStorage; luego vendrá desde la API. */}
       <div className="mb-6 grid gap-4 rounded-3xl border border-white/10 bg-slate-950/60 p-5 md:grid-cols-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
             Responsable actual
           </p>
 
-          <p className="mt-3 text-sm font-semibold text-white">
-            {assignedTo}
-          </p>
+          <p className="mt-3 text-sm font-semibold text-white">{assignedTo}</p>
         </div>
 
         <div>
