@@ -1,28 +1,20 @@
 import Link from "next/link";
-import StatCard from "@/components/dashboard/StatCard";
-import IncidentCard from "@/components/incidents/IncidentCard";
+
+import DashboardClient from "@/components/dashboard/DashboardClient";
 import { incidents } from "@/data/incidents";
 
-// Página principal de métricas operativas.
-// Usa mock data hasta que el backend exponga endpoints reales.
-
+/**
+ * Página principal de métricas operativas.
+ *
+ * Esta pantalla muestra una vista general del estado de los incidentes:
+ * total, abiertos, en proceso, cerrados e incidentes recientes.
+ *
+ * Importante:
+ * Esta página sigue siendo Server Component.
+ * Las métricas se delegan a DashboardClient porque necesitan leer localStorage
+ * para reflejar cambios temporales mientras no existe backend.
+ */
 export default function DashboardPage() {
-  const totalIncidents = incidents.length;
-
-  const openIncidents = incidents.filter(
-    (incident) => incident.status === "Abierto"
-  ).length;
-
-  const inProgressIncidents = incidents.filter(
-    (incident) => incident.status === "En progreso"
-  ).length;
-
-  const closedIncidents = incidents.filter(
-    (incident) => incident.status === "Cerrado"
-  ).length;
-
-  const latestIncidents = incidents.slice(0, 2);
-
   return (
     <main className="px-6 py-10 text-white">
       <section className="mx-auto max-w-6xl">
@@ -46,63 +38,14 @@ export default function DashboardPage() {
           </Link>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-4">
-          <StatCard
-            label="Total"
-            value={totalIncidents}
-            helper="Incidentes cargados"
-            tone="cyan"
-          />
+        {/*
+          DashboardClient recibe la mock data base y luego, del lado cliente,
+          la combina con los cambios guardados en localStorage.
 
-          <StatCard
-            label="Abiertos"
-            value={openIncidents}
-            helper="Requieren atención"
-            tone="red"
-          />
-
-          <StatCard
-            label="En progreso"
-            value={inProgressIncidents}
-            helper="Ya asignados"
-            tone="amber"
-          />
-
-          <StatCard
-            label="Cerrados"
-            value={closedIncidents}
-            helper="Resueltos"
-            tone="green"
-          />
-        </section>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-          <div>
-            <h2 className="text-xl font-semibold">Incidentes recientes</h2>
-
-            <div className="mt-4 grid gap-4">
-              {latestIncidents.map((incident) => (
-                <IncidentCard key={incident.id} incident={incident} />
-              ))}
-            </div>
-          </div>
-
-          <aside className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="text-xl font-semibold">Lectura rápida</h2>
-
-            <p className="mt-3 text-sm leading-6 text-slate-400">
-              El objetivo del MVP es validar el flujo base: reportar, visualizar
-              estado, asignar responsable y dejar trazabilidad.
-            </p>
-
-            <div className="mt-5 space-y-3 text-sm text-slate-300">
-              <p>• Reporte mobile-first</p>
-              <p>• Seguimiento por estado</p>
-              <p>• Métricas iniciales</p>
-              <p>• Base lista para conectar backend</p>
-            </div>
-          </aside>
-        </section>
+          Esto permite que el dashboard refleje asignaciones y cierres hechos
+          desde la página de detalle sin modificar la mock data original.
+        */}
+        <DashboardClient initialIncidents={incidents} />
       </section>
     </main>
   );
