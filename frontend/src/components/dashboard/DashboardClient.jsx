@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import StatCard from "@/components/dashboard/StatCard";
 import IncidentCard from "@/components/incidents/IncidentCard";
-import { getMergedIncident, INCIDENT_STATUS } from "@/lib/incidentStorage";
-
+import { getAllMergedIncidents, INCIDENT_STATUS } from "@/lib/incidentStorage";
 /**
  * Dashboard cliente para métricas operativas.
  *
@@ -22,7 +21,8 @@ import { getMergedIncident, INCIDENT_STATUS } from "@/lib/incidentStorage";
  * ya debería devolver los incidentes actualizados.
  */
 export default function DashboardClient({ initialIncidents }) {
-  const [displayedIncidents, setDisplayedIncidents] = useState(initialIncidents);
+  const [displayedIncidents, setDisplayedIncidents] =
+    useState(initialIncidents);
 
   /**
    * Combina la mock data original con los cambios guardados localmente.
@@ -31,9 +31,7 @@ export default function DashboardClient({ initialIncidents }) {
    * Solo generamos una versión actualizada para mostrar en pantalla.
    */
   const syncLocalIncidentState = useCallback(() => {
-    const mergedIncidents = initialIncidents.map((incident) =>
-      getMergedIncident(incident)
-    );
+    const mergedIncidents = getAllMergedIncidents(initialIncidents);
 
     setDisplayedIncidents(mergedIncidents);
   }, [initialIncidents]);
@@ -56,7 +54,7 @@ export default function DashboardClient({ initialIncidents }) {
     return () => {
       window.removeEventListener(
         "opscore-incident-updated",
-        syncLocalIncidentState
+        syncLocalIncidentState,
       );
       window.removeEventListener("storage", syncLocalIncidentState);
       window.removeEventListener("focus", syncLocalIncidentState);
@@ -66,15 +64,15 @@ export default function DashboardClient({ initialIncidents }) {
   const totalIncidents = displayedIncidents.length;
 
   const openIncidents = displayedIncidents.filter(
-    (incident) => incident.status === INCIDENT_STATUS.OPEN
+    (incident) => incident.status === INCIDENT_STATUS.OPEN,
   ).length;
 
   const inProgressIncidents = displayedIncidents.filter(
-    (incident) => incident.status === INCIDENT_STATUS.IN_PROGRESS
+    (incident) => incident.status === INCIDENT_STATUS.IN_PROGRESS,
   ).length;
 
   const closedIncidents = displayedIncidents.filter(
-    (incident) => incident.status === INCIDENT_STATUS.CLOSED
+    (incident) => incident.status === INCIDENT_STATUS.CLOSED,
   ).length;
 
   /**

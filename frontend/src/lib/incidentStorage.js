@@ -1,15 +1,23 @@
-// Utilidades para manejar cambios locales de incidentes.
+// Utilidades para manejar persistencia local de incidentes.
 //
 // Mientras no exista backend, usamos localStorage para simular persistencia.
-// La idea es que la UI pueda actualizar asignaciones, estados y resoluciones
-// sin modificar directamente la mock data original.
+// Esta capa permite que la UI pueda:
+//
+// - crear incidentes nuevos,
+// - asignar responsables,
+// - cambiar estados,
+// - cerrar incidentes,
+// - reflejar cambios en listado, dashboard y reportes.
 //
 // Cuando integremos Django, este archivo será reemplazado o adaptado para usar
 // llamadas HTTP reales, por ejemplo:
+// GET /api/incidents
+// POST /api/incidents
 // PATCH /api/incidents/:id/assign
 // PATCH /api/incidents/:id/close
 
-const STORAGE_KEY = "opscore-incident-updates";
+const INCIDENT_UPDATES_STORAGE_KEY = "opscore-incident-updates";
+const CREATED_INCIDENTS_STORAGE_KEY = "opscore-created-incidents";
 
 export const INCIDENT_STATUS = {
   OPEN: "Abierto",
@@ -28,7 +36,48 @@ function isBrowser() {
 }
 
 /**
- * Lee todos los cambios locales guardados para incidentes.
+ * Lee y parsea JSON desde localStorage de forma segura.
+ *
+ * Centralizamos esta lógica para evitar repetir try/catch en cada función.
+ */
+function readFromStorage(storageKey, fallbackValue) {
+  if (!isBrowser()) return fallbackValue;
+
+  try {
+    return JSON.parse(localStorage.getItem(storageKey)) || fallbackValue;
+  } catch (error) {
+    console.error(`Error reading ${storageKey} from localStorage:`, error);
+    return fallbackValue;
+  }
+}
+
+/**
+ * Guarda JSON en localStorage de forma segura.
+ */
+function writeToStorage(storageKey, value) {
+  if (!isBrowser()) return;
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error saving ${storageKey} in localStorage:`, error);
+  }
+}
+
+/**
+ * Genera un ID local para incidentes creados en modo demo.
+ *
+ * En backend, este ID debería venir desde la base de datos.
+ */
+function createLocalIncidentId() {
+  return `INC-${Date.now()}`;
+}
+
+/**
+ * Lee todos los cambios locales guardados sobre incidentes.
+ *
+ * Estos cambios aplican tanto sobre incidentes mock como sobre incidentes
+ * creados localmente.
  *
  * Estructura esperada:
  * {
@@ -41,27 +90,14 @@ function isBrowser() {
  * }
  */
 export function getIncidentUpdates() {
-  if (!isBrowser()) return {};
-
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch (error) {
-    console.error("Error reading incident updates from localStorage:", error);
-    return {};
-  }
+  return readFromStorage(INCIDENT_UPDATES_STORAGE_KEY, {});
 }
 
 /**
  * Guarda todos los cambios locales de incidentes.
  */
 export function saveIncidentUpdates(updates) {
-  if (!isBrowser()) return;
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updates));
-  } catch (error) {
-    console.error("Error saving incident updates in localStorage:", error);
-  }
+  writeToStorage(INCIDENT_UPDATES_STORAGE_KEY, updates);
 }
 
 /**
@@ -74,7 +110,63 @@ export function getIncidentUpdateById(incidentId) {
 }
 
 /**
- * Combina la información original del mock con los cambios locales.
+ * Lee incidentes creados localmente desde el formulario de nuevo incidente.
+ *
+ * Estos incidentes no existen en src/data/incidents.js porque todavía no hay
+ * backend ni base de datos.
+ */
+export function getCreatedIncidents() {
+  return readFromStorage(CREATED_INCIDENTS_STORAGE_KEY, []);
+}
+
+/**
+ * Guarda la lista completa de incidentes creados localmente.
+ */
+export function saveCreatedIncidents(incidents) {
+  writeToStorage(CREATED_INCIDENTS_STORAGE_KEY, incidents);
+}
+
+/**
+ * Crea y persiste un nuevo incidente local.
+ *
+ * Esta función representa el futuro POST /api/incidents.
+ * Por ahora guarda el incidente en localStorage para que aparezca en:
+ *
+ * - /incidents
+ * - /dashboard
+ * - /reports
+ */
+export function createLocalIncident(formData) {
+  const createdIncidents = getCreatedIncidents();
+
+  const newIncident = {
+    id: createLocalIncidentId(),
+    title: formData.title.trim(),
+    description: formData.description.trim(),
+    area: formData.area,
+    type: formData.type,
+    priority: formData.priority,
+    shift: formData.shift,
+    location: formData.location.trim(),
+    reportedBy: formData.reporterName?.trim() || "Operario sin identificar",
+    assignedTo: "Sin asignar",
+    status: INCIDENT_STATUS.OPEN,
+    createdAt: new Date().toISOString(),
+    resolvedAt: null,
+    resolutionNote: "",
+    isLocalOnly: true,
+  };
+
+  const nextCreatedIncidents = [newIncident, ...createdIncidents];
+
+  saveCreatedIncidents(nextCreatedIncidents);
+  notifyIncidentUpdated(newIncident.id);
+
+  return newIncident;
+}
+
+/**
+ * Combina la información original de un incidente con sus cambios locales.
  *
  * Esto permite que la UI vea un incidente actualizado aunque la data base
  * siga viniendo desde src/data/incidents.js.
@@ -88,6 +180,24 @@ export function getMergedIncident(incident) {
     ...incident,
     ...localUpdate,
   };
+}
+
+/**
+ * Devuelve la lista completa de incidentes visible para la app.
+ *
+ * Combina:
+ * - incidentes mock originales,
+ * - incidentes creados localmente,
+ * - cambios locales aplicados sobre ambos.
+ *
+ * Esta función debería usarse en listado, dashboard y reportes.
+ */
+export function getAllMergedIncidents(baseIncidents = []) {
+  const createdIncidents = getCreatedIncidents();
+
+  const allIncidents = [...createdIncidents, ...baseIncidents];
+
+  return allIncidents.map((incident) => getMergedIncident(incident));
 }
 
 /**
@@ -144,10 +254,10 @@ export function saveIncidentResolution({ incidentId, resolutionNote }) {
 }
 
 /**
- * Notifica a otros componentes de la misma pantalla que un incidente cambió.
+ * Notifica a otros componentes que cambió información de incidentes.
  *
  * El evento "storage" del navegador no se dispara en la misma pestaña,
- * por eso usamos un evento custom para sincronizar formularios locales.
+ * por eso usamos un evento custom para sincronizar pantallas locales.
  */
 export function notifyIncidentUpdated(incidentId) {
   if (!isBrowser()) return;

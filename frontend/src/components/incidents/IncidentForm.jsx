@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+
 import {
   incidentAreas,
   incidentPriorities,
@@ -8,17 +10,27 @@ import {
   incidentTypes,
   initialIncidentFormState,
 } from "@/constants/incidentOptions";
+import { createLocalIncident } from "@/lib/incidentStorage";
 
-// Formulario principal para reportar incidentes.
-// Por ahora trabaja sin backend, pero deja preparado el objeto final para enviarlo a una API.
-
+/**
+ * Formulario principal para reportar incidentes.
+ *
+ * Por ahora trabaja en modo demo, sin backend.
+ * Cuando el usuario registra un incidente, lo guardamos en localStorage para
+ * que aparezca en listado, dashboard y reportes.
+ *
+ * En el futuro, createLocalIncident será reemplazado por una llamada:
+ * POST /api/incidents
+ */
 export default function IncidentForm() {
   const [formData, setFormData] = useState(initialIncidentFormState);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [lastSubmittedIncident, setLastSubmittedIncident] = useState(null);
 
-  // Actualiza el estado del formulario usando el atributo "name" de cada input.
+  /**
+   * Actualiza el estado del formulario usando el atributo "name" de cada input.
+   */
   function handleChange(event) {
     const { name, value } = event.target;
 
@@ -27,7 +39,10 @@ export default function IncidentForm() {
       [name]: value,
     }));
 
-    // Si el usuario corrige un campo, limpiamos su error puntual.
+    /**
+     * Si el usuario corrige un campo, limpiamos solo ese error.
+     * Esto mejora UX sin borrar errores de otros campos.
+     */
     setErrors((currentErrors) => ({
       ...currentErrors,
       [name]: "",
@@ -36,10 +51,15 @@ export default function IncidentForm() {
     setSuccessMessage("");
   }
 
-  // Validación mínima del lado cliente.
-  // Esto mejora UX, pero no reemplaza la validación real del backend.
+  /**
+   * Validación mínima del lado cliente.
+   *
+   * Esto mejora la experiencia del usuario, pero no reemplaza validaciones
+   * reales del backend cuando exista Django.
+   */
   function validateForm() {
     const newErrors = {};
+    const cleanDescription = formData.description.trim();
 
     if (!formData.title.trim()) {
       newErrors.title = "El título es obligatorio.";
@@ -65,12 +85,13 @@ export default function IncidentForm() {
       newErrors.location = "Indicá el sector, línea o ubicación.";
     }
 
-    if (!formData.description.trim()) {
+    if (!cleanDescription) {
       newErrors.description = "La descripción es obligatoria.";
     }
 
-    if (formData.description.trim().length > 0 && formData.description.length < 15) {
-      newErrors.description = "La descripción debe tener al menos 15 caracteres.";
+    if (cleanDescription.length > 0 && cleanDescription.length < 15) {
+      newErrors.description =
+        "La descripción debe tener al menos 15 caracteres.";
     }
 
     return newErrors;
@@ -87,19 +108,12 @@ export default function IncidentForm() {
       return;
     }
 
-    // Objeto listo para enviar al backend cuando exista endpoint.
-    const newIncident = {
-      id: `INC-${Date.now()}`,
-      ...formData,
-      status: "Abierto",
-      assignedTo: "Sin asignar",
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("New incident ready to send:", newIncident);
+    const newIncident = createLocalIncident(formData);
 
     setLastSubmittedIncident(newIncident);
-    setSuccessMessage("Incidente registrado correctamente en modo demo.");
+    setSuccessMessage(
+      "Incidente registrado correctamente. Ya está disponible en el listado, dashboard y reportes."
+    );
     setFormData(initialIncidentFormState);
     setErrors({});
   }
@@ -262,13 +276,29 @@ export default function IncidentForm() {
       {lastSubmittedIncident ? (
         <section className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
           <h2 className="text-lg font-semibold text-white">
-            Último incidente generado
+            Incidente creado
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Esta vista es temporal para validar que el formulario construye bien
-            el objeto antes de conectarlo con el backend.
+            El incidente fue guardado localmente en modo demo. Ya puede verse en
+            el listado y en las métricas.
           </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/incidents"
+              className="inline-flex w-fit rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+            >
+              Ver listado
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="inline-flex w-fit rounded-xl border border-cyan-400/30 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/10"
+            >
+              Ver dashboard
+            </Link>
+          </div>
 
           <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-300">
             {JSON.stringify(lastSubmittedIncident, null, 2)}
@@ -279,8 +309,11 @@ export default function IncidentForm() {
   );
 }
 
-// Campo select reutilizable dentro del formulario.
-// Reduce duplicación y mantiene estilos consistentes.
+/**
+ * Campo select reutilizable dentro del formulario.
+ *
+ * Reduce duplicación y mantiene estilos consistentes entre selects.
+ */
 function SelectField({
   id,
   name,
