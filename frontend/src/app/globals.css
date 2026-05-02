@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/*
+  Variables globales del tema.
+  Mantenemos una base oscura porque OpsCore apunta a un dashboard operativo.
+*/
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+/*
+  Reset mínimo.
+  Ayuda a evitar comportamientos visuales distintos entre navegadores.
+*/
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+  Mejora visual al seleccionar texto.
+  Es un detalle chico, pero le da más pulido al producto.
+*/
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+  color: #ffffff;
+}
