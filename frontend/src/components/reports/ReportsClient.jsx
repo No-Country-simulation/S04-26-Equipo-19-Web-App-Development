@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import StatCard from "@/components/dashboard/StatCard";
-import { getMergedIncident, INCIDENT_STATUS } from "@/lib/incidentStorage";
-
+import { getAllMergedIncidents, INCIDENT_STATUS } from "@/lib/incidentStorage";
 /**
  * Reportes cliente para análisis operativo.
  *
@@ -23,7 +22,8 @@ import { getMergedIncident, INCIDENT_STATUS } from "@/lib/incidentStorage";
  * o desde endpoints específicos de analítica.
  */
 export default function ReportsClient({ initialIncidents }) {
-  const [displayedIncidents, setDisplayedIncidents] = useState(initialIncidents);
+  const [displayedIncidents, setDisplayedIncidents] =
+    useState(initialIncidents);
 
   /**
    * Combina la mock data original con los cambios guardados localmente.
@@ -32,9 +32,7 @@ export default function ReportsClient({ initialIncidents }) {
    * Solo generamos una versión actualizada para reportes.
    */
   const syncLocalIncidentState = useCallback(() => {
-    const mergedIncidents = initialIncidents.map((incident) =>
-      getMergedIncident(incident)
-    );
+    const mergedIncidents = getAllMergedIncidents(initialIncidents);
 
     setDisplayedIncidents(mergedIncidents);
   }, [initialIncidents]);
@@ -52,7 +50,7 @@ export default function ReportsClient({ initialIncidents }) {
     return () => {
       window.removeEventListener(
         "opscore-incident-updated",
-        syncLocalIncidentState
+        syncLocalIncidentState,
       );
       window.removeEventListener("storage", syncLocalIncidentState);
       window.removeEventListener("focus", syncLocalIncidentState);
@@ -67,19 +65,19 @@ export default function ReportsClient({ initialIncidents }) {
 
     const highPriorityIncidents = displayedIncidents.filter(
       (incident) =>
-        incident.priority === "Alta" || incident.priority === "Crítica"
+        incident.priority === "Alta" || incident.priority === "Crítica",
     ).length;
 
     const qualityIncidents = displayedIncidents.filter(
-      (incident) => incident.type === "Calidad"
+      (incident) => incident.type === "Calidad",
     ).length;
 
     const securityIncidents = displayedIncidents.filter(
-      (incident) => incident.type === "Seguridad"
+      (incident) => incident.type === "Seguridad",
     ).length;
 
     const closedIncidents = displayedIncidents.filter(
-      (incident) => incident.status === INCIDENT_STATUS.CLOSED
+      (incident) => incident.status === INCIDENT_STATUS.CLOSED,
     ).length;
 
     const closureRate =
@@ -192,9 +190,7 @@ function ReportPanel({ title, description, items }) {
       <div>
         <h2 className="text-xl font-semibold">{title}</h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-          {description}
-        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
       </div>
 
       <div className="mt-5 space-y-3">

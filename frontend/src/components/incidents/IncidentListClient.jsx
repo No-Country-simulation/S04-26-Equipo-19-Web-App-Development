@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import IncidentCard from "@/components/incidents/IncidentCard";
-import { getMergedIncident } from "@/lib/incidentStorage";
-
+import { getAllMergedIncidents } from "@/lib/incidentStorage";
 /**
  * Listado client-side de incidentes.
  *
@@ -28,9 +27,7 @@ export default function IncidentListClient({ initialIncidents }) {
    * acá mezclamos esa actualización con la data mock original.
    */
   const syncLocalIncidentChanges = useCallback(() => {
-    const mergedIncidents = initialIncidents.map((incident) =>
-      getMergedIncident(incident)
-    );
+    const mergedIncidents = getAllMergedIncidents(initialIncidents);
 
     setVisibleIncidents(mergedIncidents);
   }, [initialIncidents]);
@@ -62,7 +59,7 @@ export default function IncidentListClient({ initialIncidents }) {
     return () => {
       window.removeEventListener(
         "opscore-incident-updated",
-        handleIncidentUpdated
+        handleIncidentUpdated,
       );
       window.removeEventListener("storage", handleIncidentUpdated);
       window.removeEventListener("focus", handleIncidentUpdated);
