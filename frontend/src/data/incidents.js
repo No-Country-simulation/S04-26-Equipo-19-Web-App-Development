@@ -1,5 +1,10 @@
 // Mock data inicial para trabajar el frontend sin depender todavía del backend.
-// Más adelante este archivo se reemplazará por llamadas reales a la API de Django.
+//
+// Este archivo permite construir pantallas, rutas dinámicas, filtros y métricas
+// usando datos locales mientras el equipo backend define los endpoints reales.
+//
+// Cuando integremos Django, esta información debería venir desde la API,
+// por ejemplo: GET /api/incidents
 
 export const incidents = [
   {
@@ -23,7 +28,11 @@ export const incidents = [
     area: "Calidad",
     type: "Calidad",
     priority: "Media",
-    status: "En progreso",
+
+    // Usamos "En proceso" como estado estándar para incidentes ya tomados.
+    // Mantener este texto consistente con StatusBadge, filtros y formularios.
+    status: "En proceso",
+
     reportedBy: "Operario 3",
     assignedTo: "Supervisor de calidad",
     createdAt: "2026-05-01T10:30:00",
@@ -32,7 +41,8 @@ export const incidents = [
   {
     id: "INC-003",
     title: "Accidente menor en sector carga",
-    description: "Un operario sufrió un golpe leve durante una maniobra de carga.",
+    description:
+      "Un operario sufrió un golpe leve durante una maniobra de carga.",
     area: "Seguridad",
     type: "Seguridad",
     priority: "Alta",
