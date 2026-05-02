@@ -40,11 +40,9 @@ export default function Sidebar() {
 
         <nav className="mt-4 space-y-2">
           {navItems.map((item) => {
-            // Marcamos como activo el link exacto o sus rutas hijas.
-            // Ejemplo: /incidents/new también mantiene activa la sección Incidentes.
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
+            // Marcamos como activo solo el link que coincide exactamente con la ruta actual.
+            // Evita que /incidents también quede activo cuando estamos en /incidents/new.
+            const isActive = pathname === item.href;
 
             return (
               <Link
