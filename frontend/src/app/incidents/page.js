@@ -1,10 +1,19 @@
 import Link from "next/link";
-import IncidentCard from "@/components/incidents/IncidentCard";
+
+import IncidentListClient from "@/components/incidents/IncidentListClient";
 import { incidents } from "@/data/incidents";
 
-// Página de listado de incidentes.
-// Muestra reportes, estados, prioridades y responsables.
-
+/**
+ * Página de listado de incidentes.
+ *
+ * Esta pantalla muestra el estado general de los reportes operativos:
+ * responsables, prioridades, estados y acceso al detalle.
+ *
+ * Importante:
+ * La página sigue siendo Server Component.
+ * El listado se delega a IncidentListClient porque necesita leer localStorage
+ * para reflejar cambios temporales mientras no existe backend.
+ */
 export default function IncidentsPage() {
   return (
     <main className="px-6 py-10 text-white">
@@ -31,11 +40,14 @@ export default function IncidentsPage() {
           </Link>
         </header>
 
-        <section className="mt-8 grid gap-4">
-          {incidents.map((incident) => (
-            <IncidentCard key={incident.id} incident={incident} />
-          ))}
-        </section>
+        {/*
+          El listado recibe la mock data base y luego, del lado cliente,
+          la combina con los cambios guardados en localStorage.
+
+          Esto permite que /incidents refleje asignaciones y cierres hechos
+          desde la página de detalle sin tocar la data mock original.
+        */}
+        <IncidentListClient initialIncidents={incidents} />
       </section>
     </main>
   );

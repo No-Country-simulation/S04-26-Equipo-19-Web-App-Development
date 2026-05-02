@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import CloseIncidentForm from "@/components/incidents/CloseIncidentForm";
 import { incidents } from "@/data/incidents";
 import StatusBadge from "@/components/incidents/StatusBadge";
 import AssignTechnicianForm from "@/components/incidents/AssignTechnicianForm";
@@ -124,9 +124,7 @@ export default async function IncidentDetailPage({ params }) {
         {/* Bloque reservado para futuros datos de resolución */}
         {incident.status === "Cerrado" && (
           <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
-            <p className="text-sm font-semibold text-emerald-300">
-              Resolución
-            </p>
+            <p className="text-sm font-semibold text-emerald-300">Resolución</p>
 
             <p className="mt-2 text-sm leading-6 text-slate-300">
               Incidente cerrado. La nota de resolución se agregará cuando esté
@@ -149,6 +147,11 @@ export default async function IncidentDetailPage({ params }) {
         incidentId={incident.id}
         currentAssignedTo={incident.assignedTo}
         currentStatus={incident.status}
+      />
+      <CloseIncidentForm
+        incidentId={incident.id}
+        currentStatus={incident.status}
+        currentResolvedAt={incident.resolvedAt}
       />
     </section>
   );
