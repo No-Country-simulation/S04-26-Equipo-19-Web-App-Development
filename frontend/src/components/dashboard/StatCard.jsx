@@ -1,6 +1,9 @@
-// Card reutilizable para mostrar métricas del dashboard.
-// Mantenerlo separado evita repetir estilos en cada estadística.
-
+/**
+ * Card reutilizable para mostrar métricas del dashboard.
+ *
+ * Mantener este componente separado evita repetir estructura y estilos
+ * cada vez que mostramos una estadística operativa.
+ */
 export default function StatCard({ label, value, helper, tone = "default" }) {
   const tones = {
     default: "border-white/10 bg-white/5",
@@ -10,8 +13,16 @@ export default function StatCard({ label, value, helper, tone = "default" }) {
     red: "border-red-400/20 bg-red-400/10",
   };
 
+  /**
+   * Fallback defensivo.
+   *
+   * Si alguien pasa un tone inexistente, usamos el estilo default
+   * en vez de renderizar una clase undefined.
+   */
+  const toneClasses = tones[tone] || tones.default;
+
   return (
-    <article className={`rounded-2xl border p-5 ${tones[tone]}`}>
+    <article className={`rounded-2xl border p-5 ${toneClasses}`}>
       <p className="text-sm text-slate-400">{label}</p>
 
       <p className="mt-3 text-3xl font-bold text-white">{value}</p>

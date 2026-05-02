@@ -6,20 +6,19 @@ import { formatDate } from "@/utils/formatDate";
 /**
  * Card reutilizable para mostrar la información principal de un incidente.
  *
- * Se usa en el listado general y puede reutilizarse luego en dashboard
- * u otras vistas resumidas.
+ * Se usa en el listado general y también en el dashboard.
  *
  * Recibe un objeto incident ya preparado por la capa superior.
- * En /incidents, ese objeto puede venir combinado con cambios locales
+ * En algunas pantallas, ese objeto puede venir combinado con cambios locales
  * guardados temporalmente en localStorage.
  */
 export default function IncidentCard({ incident }) {
   const isClosed = incident.status === "Cerrado";
 
   const footerLabel = isClosed ? "Resuelto" : "Reportado";
-  const footerDate = isClosed && incident.resolvedAt
-    ? incident.resolvedAt
-    : incident.createdAt;
+
+  const footerDate =
+    isClosed && incident.resolvedAt ? incident.resolvedAt : incident.createdAt;
 
   return (
     <article className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-cyan-400/20 hover:bg-white/10">
