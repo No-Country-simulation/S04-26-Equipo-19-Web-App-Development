@@ -13,8 +13,8 @@ export default function NewIncidentPage() {
           <h1 className="mt-2 text-4xl font-bold">Reportar incidente</h1>
 
           <p className="mt-2 max-w-2xl text-slate-400">
-            Formulario mobile-first para registrar una falla, accidente o desvío
-            operativo de manera rápida y clara.
+            Registrá una falla, accidente o desvío operativo. Esta versión usa
+            validación local y deja preparado el objeto para conectarlo a una API.
           </p>
         </header>
 
