@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { technicians } from "@/constants/technicians";
 
-// Key única para guardar asignaciones locales en el navegador.
-// Esto simula persistencia hasta que conectemos el backend real.
+// Key usada para guardar asignaciones locales en el navegador.
+// Esto simula persistencia hasta que el backend esté disponible.
 const STORAGE_KEY = "opscore-incident-assignments";
 
-// Estados usados por el flujo de asignación.
-// Lo dejamos como constante para evitar strings repetidos y errores de tipeo.
+// Centralizamos el texto del estado para evitar errores de tipeo.
+// Debe coincidir con los estados usados en badges, filtros y métricas.
 const INCIDENT_STATUS = {
   IN_PROGRESS: "En proceso",
 };
@@ -16,8 +16,10 @@ const INCIDENT_STATUS = {
 /**
  * Lee las asignaciones guardadas en localStorage.
  *
- * La función está separada para mantener el componente más limpio
- * y para centralizar el manejo de errores.
+ * Usamos try/catch porque localStorage puede fallar si:
+ * - el JSON está corrupto,
+ * - el navegador bloquea almacenamiento,
+ * - o el usuario limpia datos parcialmente.
  */
 function getStoredAssignments() {
   try {
@@ -31,7 +33,7 @@ function getStoredAssignments() {
 /**
  * Guarda las asignaciones actualizadas en localStorage.
  *
- * En el futuro, esta función sería reemplazada por una llamada al backend:
+ * En el futuro esta función debería reemplazarse por una llamada real:
  * PATCH /api/incidents/:id/assign
  */
 function saveStoredAssignments(assignments) {
@@ -45,8 +47,10 @@ function saveStoredAssignments(assignments) {
 /**
  * Formulario para asignar un técnico responsable a un incidente.
  *
- * Este componente representa una acción típica del supervisor:
- * tomar un incidente abierto, asignar un responsable y moverlo a "En proceso".
+ * Este componente representa una acción del supervisor:
+ * tomar un incidente abierto, asignar responsable y moverlo a "En proceso".
+ *
+ * Es Client Component porque usa estado local y localStorage.
  */
 export default function AssignTechnicianForm({
   incidentId,
@@ -58,11 +62,10 @@ export default function AssignTechnicianForm({
   const [status, setStatus] = useState(currentStatus);
 
   /**
-   * Al cargar el componente, buscamos si este incidente ya tenía
+   * Al montar el componente, verificamos si este incidente ya tenía
    * una asignación guardada localmente.
    *
-   * Esto permite que la asignación sobreviva al refresh de la página
-   * mientras seguimos trabajando sin backend.
+   * Esto permite que la asignación se mantenga aunque el usuario recargue.
    */
   useEffect(() => {
     const savedAssignments = getStoredAssignments();
@@ -102,35 +105,54 @@ export default function AssignTechnicianForm({
     setSelectedTechnicianId("");
   }
 
+  const isSubmitDisabled = !selectedTechnicianId;
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold text-slate-900">
+    <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/20 md:p-8 lg:p-10">
+      <div className="mb-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
+          Gestión del incidente
+        </p>
+
+        <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">
           Asignar técnico
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Seleccioná un responsable para comenzar la resolución del incidente.
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+          Seleccioná un responsable para iniciar la resolución del incidente.
+          Esta acción mueve el caso a estado En proceso.
         </p>
       </div>
 
-      <div className="mb-5 grid gap-3 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+      {/* Estado actual de la asignación.
+          Por ahora viene de localStorage; luego vendrá desde la API. */}
+      <div className="mb-6 grid gap-4 rounded-3xl border border-white/10 bg-slate-950/60 p-5 md:grid-cols-2">
         <div>
-          <p className="text-slate-500">Responsable actual</p>
-          <p className="font-medium text-slate-900">{assignedTo}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Responsable actual
+          </p>
+
+          <p className="mt-3 text-sm font-semibold text-white">
+            {assignedTo}
+          </p>
         </div>
 
         <div>
-          <p className="text-slate-500">Estado</p>
-          <p className="font-medium text-slate-900">{status}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Estado
+          </p>
+
+          <p className="mt-3 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-sm font-semibold text-cyan-300">
+            {status}
+          </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="technician"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-2 block text-sm font-semibold text-slate-300"
           >
             Técnico responsable
           </label>
@@ -139,7 +161,7 @@ export default function AssignTechnicianForm({
             id="technician"
             value={selectedTechnicianId}
             onChange={(event) => setSelectedTechnicianId(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm font-medium text-white outline-none transition hover:border-cyan-400/30 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10"
           >
             <option value="">Seleccionar técnico</option>
 
@@ -153,8 +175,8 @@ export default function AssignTechnicianForm({
 
         <button
           type="submit"
-          disabled={!selectedTechnicianId}
-          className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          disabled={isSubmitDisabled}
+          className="inline-flex rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
         >
           Asignar técnico
         </button>
