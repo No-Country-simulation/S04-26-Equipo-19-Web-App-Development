@@ -30,9 +30,12 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <Link href="/incidents/new" className="btn-warning w-fit">
-            Nuevo incidente
-          </Link>
+          <Link
+  href="/incidents/new"
+  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-base font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
+>
+  Nuevo incidente
+</Link>
         </header>
 
         {/*

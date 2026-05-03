@@ -228,9 +228,12 @@ export default function IncidentForm() {
           </div>
         ) : null}
 
-        <button type="submit" className="btn-warning w-full">
-          Registrar incidente
-        </button>
+        <button
+    type="submit"
+    className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-base font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200 md:w-auto"
+  >
+    Registrar incidente
+  </button>
       </form>
 
       {lastSubmittedIncident ? (
