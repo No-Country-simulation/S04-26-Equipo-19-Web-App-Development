@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import IncidentCard from "@/components/incidents/IncidentCard";
 import { getAllMergedIncidents } from "@/lib/incidentStorage";
+
 /**
  * Listado client-side de incidentes.
  *
@@ -21,10 +22,6 @@ export default function IncidentListClient({ initialIncidents }) {
 
   /**
    * Sincroniza el listado con los cambios guardados localmente.
-   *
-   * Ejemplo:
-   * Si INC-001 fue asignado o cerrado desde el detalle,
-   * acá mezclamos esa actualización con la data mock original.
    */
   const syncLocalIncidentChanges = useCallback(() => {
     const mergedIncidents = getAllMergedIncidents(initialIncidents);
@@ -35,25 +32,12 @@ export default function IncidentListClient({ initialIncidents }) {
   useEffect(() => {
     syncLocalIncidentChanges();
 
-    /**
-     * Este evento custom lo dispara incidentStorage.js cada vez que
-     * se asigna o se cierra un incidente.
-     */
     function handleIncidentUpdated() {
       syncLocalIncidentChanges();
     }
 
     window.addEventListener("opscore-incident-updated", handleIncidentUpdated);
-
-    /**
-     * El evento storage ayuda si el usuario modifica datos desde otra pestaña.
-     */
     window.addEventListener("storage", handleIncidentUpdated);
-
-    /**
-     * El evento focus ayuda a refrescar el listado cuando el usuario vuelve
-     * a esta pestaña o navega de vuelta desde otra pantalla.
-     */
     window.addEventListener("focus", handleIncidentUpdated);
 
     return () => {
@@ -68,10 +52,8 @@ export default function IncidentListClient({ initialIncidents }) {
 
   if (visibleIncidents.length === 0) {
     return (
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <p className="text-sm text-slate-400">
-          Todavía no hay incidentes cargados.
-        </p>
+      <section className="empty-state mt-8">
+        <p className="text-sm">Todavía no hay incidentes cargados.</p>
       </section>
     );
   }

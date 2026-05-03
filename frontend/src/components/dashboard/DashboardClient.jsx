@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import StatCard from "@/components/dashboard/StatCard";
 import IncidentCard from "@/components/incidents/IncidentCard";
 import { getAllMergedIncidents, INCIDENT_STATUS } from "@/lib/incidentStorage";
+
 /**
  * Dashboard cliente para métricas operativas.
  *
@@ -38,11 +38,6 @@ export default function DashboardClient({ initialIncidents }) {
 
   /**
    * Sincronizamos el dashboard al montar el componente y cuando ocurren cambios.
-   *
-   * Escuchamos:
-   * - evento custom interno: cuando se asigna/cierra un incidente,
-   * - storage: cambios desde otra pestaña,
-   * - focus: cuando el usuario vuelve al dashboard.
    */
   useEffect(() => {
     syncLocalIncidentState();
@@ -84,38 +79,40 @@ export default function DashboardClient({ initialIncidents }) {
   return (
     <>
       <section className="mt-8 grid gap-4 md:grid-cols-4">
-        <StatCard
+        <MetricCard
           label="Total"
           value={totalIncidents}
           helper="Incidentes cargados"
-          tone="cyan"
+          tone="neutral"
         />
 
-        <StatCard
+        <MetricCard
           label="Abiertos"
           value={openIncidents}
           helper="Requieren atención"
-          tone="red"
+          tone="critical"
         />
 
-        <StatCard
+        <MetricCard
           label="En proceso"
           value={inProgressIncidents}
           helper="Ya asignados"
-          tone="amber"
+          tone="progress"
         />
 
-        <StatCard
+        <MetricCard
           label="Cerrados"
           value={closedIncidents}
           helper="Resueltos"
-          tone="green"
+          tone="resolved"
         />
       </section>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
         <div>
-          <h2 className="text-xl font-semibold">Incidentes recientes</h2>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            Incidentes recientes
+          </h2>
 
           <div className="mt-4 grid gap-4">
             {latestIncidents.map((incident) => (
@@ -124,15 +121,19 @@ export default function DashboardClient({ initialIncidents }) {
           </div>
         </div>
 
-        <aside className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-xl font-semibold">Lectura rápida</h2>
+        <aside className="panel p-6">
+          <p className="page-eyebrow">Lectura rápida</p>
 
-          <p className="mt-3 text-sm leading-6 text-slate-400">
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            Estado del MVP
+          </h2>
+
+          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
             El objetivo del MVP es validar el flujo base: reportar, visualizar
             estado, asignar responsable y dejar trazabilidad.
           </p>
 
-          <div className="mt-5 space-y-3 text-sm text-slate-300">
+          <div className="mt-5 grid gap-3 text-sm text-[var(--text-secondary)]">
             <p>• Reporte mobile-first</p>
             <p>• Seguimiento por estado</p>
             <p>• Métricas iniciales sincronizadas localmente</p>
@@ -141,5 +142,40 @@ export default function DashboardClient({ initialIncidents }) {
         </aside>
       </section>
     </>
+  );
+}
+
+/**
+ * Card compacta para métricas del dashboard.
+ *
+ * Evitamos depender de colores hardcodeados de Tailwind para mantener
+ * la paleta centralizada en globals.css.
+ */
+function MetricCard({ label, value, helper, tone = "neutral" }) {
+  const toneStyles = {
+    neutral:
+      "border-[rgba(65,90,119,0.22)] bg-[rgba(65,90,119,0.06)] before:bg-[var(--brand-secondary)]",
+    critical:
+      "border-[rgba(176,42,55,0.22)] bg-[rgba(176,42,55,0.06)] before:bg-[var(--status-critical)]",
+    progress:
+      "border-[rgba(232,93,4,0.24)] bg-[rgba(232,93,4,0.07)] before:bg-[var(--status-progress)]",
+    resolved:
+      "border-[rgba(45,106,79,0.22)] bg-[rgba(45,106,79,0.07)] before:bg-[var(--status-resolved)]",
+  };
+
+  return (
+    <article
+      className={`relative overflow-hidden rounded-[var(--radius-md)] border p-5 shadow-[var(--shadow-card)] before:absolute before:inset-y-0 before:left-0 before:w-1 ${
+        toneStyles[tone] || toneStyles.neutral
+      }`}
+    >
+      <p className="text-sm font-medium text-[var(--text-muted)]">{label}</p>
+
+      <p className="mt-4 text-3xl font-black tracking-tight text-[var(--text-primary)]">
+        {value}
+      </p>
+
+      <p className="mt-3 text-sm text-[var(--text-secondary)]">{helper}</p>
+    </article>
   );
 }
