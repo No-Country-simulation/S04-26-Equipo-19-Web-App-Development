@@ -1,20 +1,24 @@
 import IncidentForm from "@/components/incidents/IncidentForm";
 
-// Página para crear un nuevo incidente.
-// La lógica del formulario vive en un componente separado para mantener limpia la ruta.
-
+/**
+ * Página para crear un nuevo incidente.
+ *
+ * La lógica del formulario vive en un componente separado para mantener limpia
+ * la ruta y facilitar futuras integraciones con backend.
+ */
 export default function NewIncidentPage() {
   return (
-    <main className="px-6 py-10 text-white">
-      <section className="mx-auto max-w-3xl">
+    <main className="app-page">
+      <section className="page-container max-w-3xl">
         <header>
-          <p className="text-sm font-medium text-cyan-300">Nuevo incidente</p>
+          <p className="page-eyebrow">Nuevo incidente</p>
 
-          <h1 className="mt-2 text-4xl font-bold">Reportar incidente</h1>
+          <h1 className="page-title">Reportar incidente</h1>
 
-          <p className="mt-2 max-w-2xl text-slate-400">
+          <p className="page-description">
             Registrá una falla, accidente o desvío operativo. Esta versión usa
-            validación local y deja preparado el objeto para conectarlo a una API.
+            validación local y deja preparado el objeto para conectarlo a una
+            API.
           </p>
         </header>
 

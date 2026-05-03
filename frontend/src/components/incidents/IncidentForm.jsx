@@ -120,29 +120,16 @@ export default function IncidentForm() {
 
   return (
     <div className="mt-8">
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6"
-      >
-        <div>
-          <label htmlFor="title" className="text-sm font-medium text-slate-300">
-            Título del incidente
-          </label>
-
-          <input
-            id="title"
-            name="title"
-            type="text"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Ej: Falla en cinta transportadora"
-            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
-          />
-
-          {errors.title ? (
-            <p className="mt-2 text-sm text-red-300">{errors.title}</p>
-          ) : null}
-        </div>
+      <form onSubmit={handleSubmit} className="panel space-y-5 p-6">
+        <TextField
+          id="title"
+          name="title"
+          label="Título del incidente"
+          value={formData.title}
+          onChange={handleChange}
+          error={errors.title}
+          placeholder="Ej: Falla en cinta transportadora"
+        />
 
         <div className="grid gap-5 md:grid-cols-2">
           <SelectField
@@ -193,54 +180,28 @@ export default function IncidentForm() {
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="location"
-              className="text-sm font-medium text-slate-300"
-            >
-              Sector o ubicación
-            </label>
+          <TextField
+            id="location"
+            name="location"
+            label="Sector o ubicación"
+            value={formData.location}
+            onChange={handleChange}
+            error={errors.location}
+            placeholder="Ej: Línea 2, sector envasado"
+          />
 
-            <input
-              id="location"
-              name="location"
-              type="text"
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="Ej: Línea 2, sector envasado"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
-            />
-
-            {errors.location ? (
-              <p className="mt-2 text-sm text-red-300">{errors.location}</p>
-            ) : null}
-          </div>
-
-          <div>
-            <label
-              htmlFor="reporterName"
-              className="text-sm font-medium text-slate-300"
-            >
-              Reportado por
-            </label>
-
-            <input
-              id="reporterName"
-              name="reporterName"
-              type="text"
-              value={formData.reporterName}
-              onChange={handleChange}
-              placeholder="Nombre del operador"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
-            />
-          </div>
+          <TextField
+            id="reporterName"
+            name="reporterName"
+            label="Reportado por"
+            value={formData.reporterName}
+            onChange={handleChange}
+            placeholder="Nombre del operador"
+          />
         </div>
 
-        <div>
-          <label
-            htmlFor="description"
-            className="text-sm font-medium text-slate-300"
-          >
+        <div className="form-group">
+          <label htmlFor="description" className="form-label">
             Descripción
           </label>
 
@@ -251,59 +212,95 @@ export default function IncidentForm() {
             value={formData.description}
             onChange={handleChange}
             placeholder="Describí qué ocurrió, cuándo se detectó y si afecta la operación..."
-            className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
+            className="form-control"
           />
 
           {errors.description ? (
-            <p className="mt-2 text-sm text-red-300">{errors.description}</p>
+            <p className="text-sm font-medium text-[var(--status-critical)]">
+              {errors.description}
+            </p>
           ) : null}
         </div>
 
         {successMessage ? (
-          <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300">
+          <div className="rounded-[var(--radius-md)] border border-[rgba(45,106,79,0.28)] bg-[rgba(45,106,79,0.08)] px-4 py-3 text-sm font-medium text-[var(--status-resolved)]">
             {successMessage}
           </div>
         ) : null}
 
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
-        >
+        <button type="submit" className="btn-warning w-full">
           Registrar incidente
         </button>
       </form>
 
       {lastSubmittedIncident ? (
-        <section className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
-          <h2 className="text-lg font-semibold text-white">
-            Incidente creado
-          </h2>
+        <section className="panel mt-6 p-5">
+          <div className="border-l-4 border-[var(--status-resolved)] pl-4">
+            <p className="page-eyebrow">Incidente creado</p>
 
-          <p className="mt-2 text-sm leading-6 text-slate-300">
-            El incidente fue guardado localmente en modo demo. Ya puede verse en
-            el listado y en las métricas.
-          </p>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">
+              Registro guardado en modo demo
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+              El incidente fue guardado localmente. Ya puede verse en el
+              listado, dashboard y reportes.
+            </p>
+          </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/incidents"
-              className="inline-flex w-fit rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
-            >
+            <Link href="/incidents" className="btn-primary w-fit">
               Ver listado
             </Link>
 
-            <Link
-              href="/dashboard"
-              className="inline-flex w-fit rounded-xl border border-cyan-400/30 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/10"
-            >
+            <Link href="/dashboard" className="btn-secondary w-fit">
               Ver dashboard
             </Link>
           </div>
 
-          <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-300">
+          <pre className="mt-4 max-h-72 overflow-x-auto rounded-[var(--radius-md)] border border-[var(--border-muted)] bg-[var(--surface-soft)] p-4 text-xs leading-6 text-[var(--text-secondary)]">
             {JSON.stringify(lastSubmittedIncident, null, 2)}
           </pre>
         </section>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Campo input reutilizable dentro del formulario.
+ *
+ * Evita repetir estilos y mantiene consistencia visual entre campos.
+ */
+function TextField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  error,
+  placeholder,
+}) {
+  return (
+    <div className="form-group">
+      <label htmlFor={id} className="form-label">
+        {label}
+      </label>
+
+      <input
+        id={id}
+        name={name}
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="form-control"
+      />
+
+      {error ? (
+        <p className="text-sm font-medium text-[var(--status-critical)]">
+          {error}
+        </p>
       ) : null}
     </div>
   );
@@ -325,8 +322,8 @@ function SelectField({
   placeholder,
 }) {
   return (
-    <div>
-      <label htmlFor={id} className="text-sm font-medium text-slate-300">
+    <div className="form-group">
+      <label htmlFor={id} className="form-label">
         {label}
       </label>
 
@@ -335,7 +332,7 @@ function SelectField({
         name={name}
         value={value}
         onChange={onChange}
-        className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+        className="form-control"
       >
         <option value="">{placeholder}</option>
 
@@ -346,7 +343,11 @@ function SelectField({
         ))}
       </select>
 
-      {error ? <p className="mt-2 text-sm text-red-300">{error}</p> : null}
+      {error ? (
+        <p className="text-sm font-medium text-[var(--status-critical)]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

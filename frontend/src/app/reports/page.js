@@ -14,14 +14,14 @@ import { incidents } from "@/data/incidents";
  */
 export default function ReportsPage() {
   return (
-    <main className="px-6 py-10 text-white">
-      <section className="mx-auto max-w-6xl">
+    <main className="app-page">
+      <section className="page-container">
         <header>
-          <p className="text-sm font-medium text-cyan-300">Reportes</p>
+          <p className="page-eyebrow">Reportes</p>
 
-          <h1 className="mt-2 text-4xl font-bold">Análisis operativo</h1>
+          <h1 className="page-title">Análisis operativo</h1>
 
-          <p className="mt-2 max-w-2xl text-slate-400">
+          <p className="page-description">
             Primer panel para detectar patrones, prioridades y áreas críticas
             dentro de los incidentes registrados.
           </p>

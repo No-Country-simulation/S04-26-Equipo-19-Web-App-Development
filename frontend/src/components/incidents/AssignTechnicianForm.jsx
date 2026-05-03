@@ -45,7 +45,7 @@ export default function AssignTechnicianForm({
     if (!selectedTechnicianId) return;
 
     const selectedTechnician = technicians.find(
-      (technician) => technician.id === selectedTechnicianId
+      (technician) => technician.id === selectedTechnicianId,
     );
 
     if (!selectedTechnician) return;
@@ -63,48 +63,37 @@ export default function AssignTechnicianForm({
   const isSubmitDisabled = !selectedTechnicianId;
 
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/20 md:p-8 lg:p-10">
+    <section className="panel p-6 md:p-8">
       <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
-          Gestión del incidente
-        </p>
+        <p className="page-eyebrow">Gestión del incidente</p>
 
-        <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">
+        <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
           Asignar técnico
         </h2>
 
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
           Seleccioná un responsable para iniciar la resolución del incidente.
           Esta acción mueve el caso a estado En proceso.
         </p>
       </div>
 
-      <div className="mb-6 grid gap-4 rounded-3xl border border-white/10 bg-slate-950/60 p-5 md:grid-cols-2">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-            Responsable actual
-          </p>
-
-          <p className="mt-3 text-sm font-semibold text-white">{assignedTo}</p>
-        </div>
+      <div className="mb-6 grid gap-4 rounded-[var(--radius-md)] border border-[var(--border-muted)] bg-[var(--surface-soft)] p-5 md:grid-cols-2">
+        <InfoBlock label="Responsable actual" value={assignedTo} />
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">
             Estado
           </p>
 
-          <p className="mt-3 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-sm font-semibold text-cyan-300">
-            {status}
+          <p className="mt-3">
+            <span className="badge badge-open">{status}</span>
           </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label
-            htmlFor="technician"
-            className="mb-2 block text-sm font-semibold text-slate-300"
-          >
+        <div className="form-group">
+          <label htmlFor="technician" className="form-label">
             Técnico responsable
           </label>
 
@@ -112,7 +101,7 @@ export default function AssignTechnicianForm({
             id="technician"
             value={selectedTechnicianId}
             onChange={(event) => setSelectedTechnicianId(event.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm font-medium text-white outline-none transition hover:border-cyan-400/30 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10"
+            className="form-control"
           >
             <option value="">Seleccionar técnico</option>
 
@@ -127,11 +116,26 @@ export default function AssignTechnicianForm({
         <button
           type="submit"
           disabled={isSubmitDisabled}
-          className="inline-flex rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+          className="btn-primary disabled:cursor-not-allowed disabled:border-[var(--border-soft)] disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-disabled)]"
         >
           Asignar técnico
         </button>
       </form>
     </section>
+  );
+}
+
+/**
+ * Bloque simple para mostrar información operativa.
+ */
+function InfoBlock({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+        {label}
+      </p>
+
+      <p className="mt-3 font-bold text-[var(--text-primary)]">{value}</p>
+    </div>
   );
 }

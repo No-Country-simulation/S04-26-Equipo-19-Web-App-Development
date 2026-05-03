@@ -2,21 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import StatCard from "@/components/dashboard/StatCard";
 import { getAllMergedIncidents, INCIDENT_STATUS } from "@/lib/incidentStorage";
+
 /**
  * Reportes cliente para análisis operativo.
  *
  * Esta capa existe porque los cambios locales de incidentes se guardan
  * temporalmente en localStorage mientras no tenemos backend.
- *
- * La página /reports puede seguir siendo Server Component, pero los cálculos
- * de reportes necesitan ejecutarse en el navegador para reflejar:
- *
- * - asignaciones,
- * - cambios de estado,
- * - cierres,
- * - fechas de resolución.
  *
  * Cuando Django esté integrado, estos cálculos podrán venir desde la API
  * o desde endpoints específicos de analítica.
@@ -27,9 +19,6 @@ export default function ReportsClient({ initialIncidents }) {
 
   /**
    * Combina la mock data original con los cambios guardados localmente.
-   *
-   * No modificamos src/data/incidents.js.
-   * Solo generamos una versión actualizada para reportes.
    */
   const syncLocalIncidentState = useCallback(() => {
     const mergedIncidents = getAllMergedIncidents(initialIncidents);
@@ -106,32 +95,32 @@ export default function ReportsClient({ initialIncidents }) {
   return (
     <>
       <section className="mt-8 grid gap-4 md:grid-cols-4">
-        <StatCard
+        <MetricCard
           label="Alta prioridad"
           value={metrics.highPriorityIncidents}
           helper="Incidentes que requieren atención rápida"
-          tone="red"
+          tone="critical"
         />
 
-        <StatCard
+        <MetricCard
           label="Calidad"
           value={metrics.qualityIncidents}
           helper="Desvíos asociados al control de calidad"
-          tone="amber"
+          tone="progress"
         />
 
-        <StatCard
+        <MetricCard
           label="Seguridad"
           value={metrics.securityIncidents}
           helper="Eventos relacionados con seguridad operativa"
-          tone="cyan"
+          tone="neutral"
         />
 
-        <StatCard
+        <MetricCard
           label="Tasa de cierre"
           value={`${metrics.closureRate}%`}
           helper={`${metrics.closedIncidents} de ${metrics.totalIncidents} incidentes cerrados`}
-          tone="green"
+          tone="resolved"
         />
       </section>
 
@@ -149,10 +138,14 @@ export default function ReportsClient({ initialIncidents }) {
         />
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-xl font-semibold">Próximos indicadores</h2>
+      <section className="panel mt-8 p-6">
+        <p className="page-eyebrow">Roadmap analítico</p>
 
-        <div className="mt-4 grid gap-4 text-sm text-slate-400 md:grid-cols-2">
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">
+          Próximos indicadores
+        </h2>
+
+        <div className="mt-4 grid gap-4 text-sm text-[var(--text-muted)] md:grid-cols-2">
           <p>• Tiempo promedio de resolución por área.</p>
           <p>• Causas raíz más frecuentes.</p>
           <p>• Tasa de cierre semanal o mensual.</p>
@@ -182,30 +175,66 @@ function countByField(incidents, fieldName) {
 }
 
 /**
+ * Card compacta para métricas de reportes.
+ */
+function MetricCard({ label, value, helper, tone = "neutral" }) {
+  const toneStyles = {
+    neutral:
+      "border-[rgba(65,90,119,0.22)] bg-[rgba(65,90,119,0.06)] before:bg-[var(--brand-secondary)]",
+    critical:
+      "border-[rgba(176,42,55,0.22)] bg-[rgba(176,42,55,0.06)] before:bg-[var(--status-critical)]",
+    progress:
+      "border-[rgba(232,93,4,0.24)] bg-[rgba(232,93,4,0.07)] before:bg-[var(--status-progress)]",
+    resolved:
+      "border-[rgba(45,106,79,0.22)] bg-[rgba(45,106,79,0.07)] before:bg-[var(--status-resolved)]",
+  };
+
+  return (
+    <article
+      className={`relative overflow-hidden rounded-[var(--radius-md)] border p-5 shadow-[var(--shadow-card)] before:absolute before:inset-y-0 before:left-0 before:w-1 ${
+        toneStyles[tone] || toneStyles.neutral
+      }`}
+    >
+      <p className="text-sm font-medium text-[var(--text-muted)]">{label}</p>
+
+      <p className="mt-4 text-3xl font-black tracking-tight text-[var(--text-primary)]">
+        {value}
+      </p>
+
+      <p className="mt-3 text-sm leading-5 text-[var(--text-secondary)]">
+        {helper}
+      </p>
+    </article>
+  );
+}
+
+/**
  * Panel reutilizable para mostrar agrupaciones simples de reportes.
  */
 function ReportPanel({ title, description, items }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+    <article className="panel p-6">
       <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">
+          {title}
+        </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+          {description}
+        </p>
       </div>
 
       <div className="mt-5 space-y-3">
         {items.map((item) => (
           <div
             key={item.label}
-            className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3"
+            className="flex items-center justify-between rounded-[var(--radius-sm)] border border-[var(--border-muted)] bg-[var(--surface-soft)] px-4 py-3"
           >
-            <span className="text-sm font-medium text-slate-300">
+            <span className="text-sm font-bold text-[var(--text-secondary)]">
               {item.label}
             </span>
 
-            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-300">
-              {item.value}
-            </span>
+            <span className="badge badge-open">{item.value}</span>
           </div>
         ))}
       </div>
