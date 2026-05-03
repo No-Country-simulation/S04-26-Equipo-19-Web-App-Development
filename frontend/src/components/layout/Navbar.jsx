@@ -63,7 +63,7 @@ export default function Navbar() {
 
           <Link
             href="/incidents/new"
-            className="rounded-[var(--radius-sm)] border border-[var(--safety-orange)] bg-[var(--safety-orange)] px-4 py-2 text-sm font-bold text-white transition hover:border-[var(--safety-orange-hover)] hover:bg-[var(--safety-orange-hover)]"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
           >
             Nuevo incidente
           </Link>
