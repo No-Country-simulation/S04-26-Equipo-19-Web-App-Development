@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crear Reporte</title>
+</head>
+<body>
+    <h1>Nuevo Reporte</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>Fecha: {% now "d/m/Y H:i" %}</p><!-- muestra hora -->
+
+        {{ form.as_p }}
+
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

@@ -7,6 +7,8 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = ['*']
 
+
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -14,6 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'usuarios',
+    'reportes',
 ]
 
 MIDDLEWARE = [
@@ -31,7 +35,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # <-- esto es clave
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -49,11 +53,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default='5432'),
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'laÑema18356',
+        'HOST': 'db.ivprwntvzdwtoqthrkcm.supabase.co',
+        'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
         },

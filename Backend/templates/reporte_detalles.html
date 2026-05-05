@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Exitoso</title>
+</head>
+<body>
+    <h1>Detalle del Reporte</h1>
+    
+    <ul>
+        <li><strong>Tipo:</strong> {{ reporte.tipo_incidente }}</li>
+        <li><strong>Área:</strong> {{ reporte.area }}</li>
+        <li><strong>Prioridad:</strong> {{ reporte.prioridad }}</li>
+        <li><strong>Descripción:</strong> {{ reporte.descripcion }}</li>
+        <li><strong>Fecha:</strong> {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+    
+    <a href="{% url 'crear_reporte' %}">Crear otro reporte</a>
+</body>
+</html>
