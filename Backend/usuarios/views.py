@@ -1,20 +1,64 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 
-# REGISTRO DE USUARIO 
+from .forms import UsuarioCreationForm
+from .models import Usuario
+from .utils import redirect_por_rol
+
+
+# Cierre de session
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+# Registro
 def registro(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+    if request.method == "POST":
+        form = UsuarioCreationForm(request.POST)
         if form.is_valid():
-            form.save() # Esto guarda al usuario en la base de datos
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'¡Cuenta creada para {username}!')
-            return redirect('admin:index') # Lo manda al login del admin
+            form.save()
+            return redirect("login")
     else:
-        form = UserCreationForm()
+        form = UsuarioCreationForm()
 
-    return render(request, 'registro.html', {'form': form})
+    return render(request, "registro.html", {"form": form})
 
-# Create your views here.
+
+# Login
+def login_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
+
+        if not email or not password:
+            return render(request, "login.html", {"error": "Completá todos los campos"})
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return render(request, "login.html", {"error": "Email inválido"})
+
+        try:
+            user_obj = Usuario.objects.get(email=email)
+        except Usuario.DoesNotExist:
+            return render(request, "login.html", {"error": "Credenciales inválidas"})
+
+        user = authenticate(request, username=user_obj.username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect_por_rol(user)
+
+        return render(request, "login.html", {"error": "Credenciales inválidas"})
+
+    return render(request, "login.html")
+
+
+# Acceso denegado (VERSIÓN LIMPIA)
+def acceso_denegado(request):
+    return render(request, "acceso_denegado.html", {
+        "home_url": redirect_por_rol(request.user).url
+    })

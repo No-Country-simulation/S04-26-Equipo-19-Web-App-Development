@@ -1,12 +1,12 @@
 from pathlib import Path
 from decouple import config
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = ['*']
-
 
 
 INSTALLED_APPS = [
@@ -56,7 +56,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'laÑema18356',
-        'HOST': 'db.ivprwntvzdwtoqthrkcm.supabase.co',
+        'HOST': 'db.mfhbukgqirhmiipkuqps.supabase.co',
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
@@ -78,3 +78,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'usuarios.Usuario'
+LOGIN_REDIRECT_URL = 'crear_reporte'
+LOGOUT_REDIRECT_URL = 'login'
+
+# La sesión dura 8 horas (en segundos)
+SESSION_COOKIE_AGE = 28800
+
+# Si cerrás el browser, la sesión se mantiene
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

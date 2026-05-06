@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOLA BUENOS DIAS SUPERVISE TRANQUILO</title>
+</head>
+<body>
+
+    <p>Bienvenido, {{ user.username }}</p>
+
+    <p>Bienvenido, {{ user.get_full_name }}</p>
+    <a href="{% url 'logout' %}">Cerrar sesión</a>
+</body>
+</html>
