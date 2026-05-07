@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { INCIDENT_DESCRIPTION_MAX_LENGTH } from "@/constants/incidentOptions";
+
 const REQUIRED_FIELDS = [
   "title",
   "area",
@@ -38,7 +40,7 @@ export async function POST(request) {
       title: incidentData.title.trim(),
       description: incidentData.description.trim(),
       area: incidentData.area,
-      type: incidentData.type,
+      type: incidentData.type.trim(),
       priority: incidentData.priority,
       shift: incidentData.shift,
       location: incidentData.location.trim(),
@@ -92,8 +94,14 @@ function validateIncidentData(incidentData) {
     return `El campo ${missingField} es obligatorio.`;
   }
 
-  if (incidentData.description.trim().length < 15) {
+  const cleanDescription = incidentData.description.trim();
+
+  if (cleanDescription.length < 15) {
     return "La descripción debe tener al menos 15 caracteres.";
+  }
+
+  if (cleanDescription.length > INCIDENT_DESCRIPTION_MAX_LENGTH) {
+    return `La descripción no puede superar los ${INCIDENT_DESCRIPTION_MAX_LENGTH} caracteres.`;
   }
 
   return null;
