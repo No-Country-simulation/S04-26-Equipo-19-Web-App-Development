@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
+  CUSTOM_INCIDENT_TYPE_OPTION,
+  INCIDENT_DESCRIPTION_MAX_LENGTH,
   incidentAreas,
   incidentPriorities,
   incidentShifts,
@@ -31,24 +33,78 @@ export default function IncidentForm() {
   const [lastSubmittedIncident, setLastSubmittedIncident] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isCustomTypeSelected = formData.type === CUSTOM_INCIDENT_TYPE_OPTION;
+
   /**
    * Actualiza el estado del formulario usando el atributo "name" de cada input.
    */
   function handleChange(event) {
     const { name, value } = event.target;
 
-    setFormData((currentData) => ({
-      ...currentData,
-      [name]: value,
-    }));
+    setFormData((currentData) => {
+      if (name === "type" && value !== CUSTOM_INCIDENT_TYPE_OPTION) {
+        return {
+          ...currentData,
+          type: value,
+          customType: "",
+        };
+      }
+
+      return {
+        ...currentData,
+        [name]: value,
+      };
+    });
 
     setErrors((currentErrors) => ({
       ...currentErrors,
       [name]: "",
+      ...(name === "type" ? { customType: "" } : {}),
     }));
 
     setSuccessMessage("");
     setErrorMessage("");
+  }
+
+  /**
+   * Limpia el estado posterior al envío exitoso y permite cargar un nuevo reporte.
+   */
+  function handleCreateNewReport() {
+    setFormData(initialIncidentFormState);
+    setErrors({});
+    setSuccessMessage("");
+    setErrorMessage("");
+    setLastSubmittedIncident(null);
+    setIsSubmitting(false);
+  }
+
+  /**
+   * Devuelve el tipo final del incidente.
+   *
+   * Si el usuario selecciona "Otro", usa el valor personalizado ingresado.
+   */
+  function getResolvedIncidentType() {
+    if (formData.type === CUSTOM_INCIDENT_TYPE_OPTION) {
+      return formData.customType.trim();
+    }
+
+    return formData.type;
+  }
+
+  /**
+   * Normaliza los datos antes de enviarlos a la capa de API/localStorage.
+   */
+  function buildIncidentPayload() {
+    return {
+      title: formData.title.trim(),
+      area: formData.area,
+      type: getResolvedIncidentType(),
+      priority: formData.priority,
+      shift: formData.shift,
+      location: formData.location.trim(),
+      reporterName: formData.reporterName.trim(),
+      description: formData.description.trim(),
+    };
   }
 
   /**
@@ -70,6 +126,13 @@ export default function IncidentForm() {
       newErrors.type = "Seleccioná un tipo de incidente.";
     }
 
+    if (
+      formData.type === CUSTOM_INCIDENT_TYPE_OPTION &&
+      !formData.customType.trim()
+    ) {
+      newErrors.customType = "Especificá el tipo de incidente.";
+    }
+
     if (!formData.priority) {
       newErrors.priority = "Seleccioná una prioridad.";
     }
@@ -89,6 +152,10 @@ export default function IncidentForm() {
     if (cleanDescription.length > 0 && cleanDescription.length < 15) {
       newErrors.description =
         "La descripción debe tener al menos 15 caracteres.";
+    }
+
+    if (cleanDescription.length > INCIDENT_DESCRIPTION_MAX_LENGTH) {
+      newErrors.description = `La descripción no puede superar los ${INCIDENT_DESCRIPTION_MAX_LENGTH} caracteres.`;
     }
 
     return newErrors;
@@ -113,18 +180,20 @@ export default function IncidentForm() {
       return;
     }
 
+    const incidentPayload = buildIncidentPayload();
+
     setIsSubmitting(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      await createIncident(formData);
+      await createIncident(incidentPayload);
 
-      const newIncident = createLocalIncident(formData);
+      const newIncident = createLocalIncident(incidentPayload);
 
       setLastSubmittedIncident(newIncident);
       setSuccessMessage(
-        "Incidente registrado correctamente. Ya está disponible en el listado, dashboard y reportes."
+        `Incidente registrado correctamente. ID: ${newIncident.id}.`,
       );
       setFormData(initialIncidentFormState);
       setErrors({});
@@ -137,8 +206,83 @@ export default function IncidentForm() {
     }
   }
 
+  if (lastSubmittedIncident) {
+    return (
+      <section className="panel mt-8 max-w-full overflow-hidden p-5">
+        <div className="border-l-4 border-(--status-resolved) pl-4">
+          <p className="page-eyebrow">Incidente creado</p>
+
+          <h2 className="text-lg font-bold text-(--text-primary)">
+            Registro guardado correctamente
+          </h2>
+
+          <p
+            className="mt-2 max-w-full wrap-break-word text-sm leading-6 text-(--text-muted)"
+            role="status"
+          >
+            {successMessage}
+          </p>
+        </div>
+
+        <dl className="mt-5 grid min-w-0 gap-3 rounded-md border border-(--border-muted) bg-(--surface-soft) p-4 text-sm sm:grid-cols-2">
+          <div className="min-w-0">
+            <dt className="font-bold text-(--text-primary)">ID</dt>
+            <dd className="mt-1 break-all font-mono text-(--text-secondary)">
+              {lastSubmittedIncident.id}
+            </dd>
+          </div>
+
+          <div className="min-w-0">
+            <dt className="font-bold text-(--text-primary)">Tipo</dt>
+            <dd className="mt-1 wrap-break-wordword text-(--text-secondary)">
+              {lastSubmittedIncident.type}
+            </dd>
+          </div>
+
+          <div className="min-w-0">
+            <dt className="font-bold text-(--text-primary)">Área</dt>
+            <dd className="mt-1 wrap-break-word text-(--text-secondary)">
+              {lastSubmittedIncident.area}
+            </dd>
+          </div>
+
+          <div className="min-w-0">
+            <dt className="font-bold text-(--text-primary)">Prioridad</dt>
+            <dd className="mt-1 wrap-break-word text-(--text-secondary)">
+              {lastSubmittedIncident.priority}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/dashboard"
+            className="btn-primary w-full justify-center sm:w-auto"
+          >
+            Volver al inicio
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleCreateNewReport}
+            className="btn-secondary w-full justify-center sm:w-auto"
+          >
+            Nuevo reporte
+          </button>
+
+          <Link
+            href="/incidents"
+            className="btn-secondary w-full justify-center sm:w-auto"
+          >
+            Ver listado
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <div className="mt-8">
+    <div className="mt-8 max-w-full overflow-hidden">
       <form onSubmit={handleSubmit} className="panel space-y-5 p-6">
         <TextField
           id="title"
@@ -150,7 +294,8 @@ export default function IncidentForm() {
           placeholder="Ej: Falla en cinta transportadora"
         />
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid items-start gap-5 md:grid-cols-2">
+          {" "}
           <SelectField
             id="area"
             name="area"
@@ -161,20 +306,34 @@ export default function IncidentForm() {
             options={incidentAreas}
             placeholder="Seleccionar área"
           />
+          <div className="space-y-4">
+            <SelectField
+              id="type"
+              name="type"
+              label="Tipo de incidente"
+              value={formData.type}
+              onChange={handleChange}
+              error={errors.type}
+              options={incidentTypes}
+              placeholder="Seleccionar tipo"
+            />
 
-          <SelectField
-            id="type"
-            name="type"
-            label="Tipo de incidente"
-            value={formData.type}
-            onChange={handleChange}
-            error={errors.type}
-            options={incidentTypes}
-            placeholder="Seleccionar tipo"
-          />
+            {isCustomTypeSelected ? (
+              <TextField
+                id="customType"
+                name="customType"
+                label="Especificá el tipo de incidente"
+                value={formData.customType}
+                onChange={handleChange}
+                error={errors.customType}
+                placeholder="Ej: Derrame menor, bloqueo de acceso, otro caso operativo..."
+              />
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid items-start gap-5 md:grid-cols-2">
+          {" "}
           <SelectField
             id="priority"
             name="priority"
@@ -185,7 +344,6 @@ export default function IncidentForm() {
             options={incidentPriorities}
             placeholder="Seleccionar prioridad"
           />
-
           <SelectField
             id="shift"
             name="shift"
@@ -198,7 +356,8 @@ export default function IncidentForm() {
           />
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid items-start gap-5 md:grid-cols-2">
+          {" "}
           <TextField
             id="location"
             name="location"
@@ -208,7 +367,6 @@ export default function IncidentForm() {
             error={errors.location}
             placeholder="Ej: Línea 2, sector envasado"
           />
-
           <TextField
             id="reporterName"
             name="reporterName"
@@ -228,34 +386,47 @@ export default function IncidentForm() {
             id="description"
             name="description"
             rows="5"
+            maxLength={INCIDENT_DESCRIPTION_MAX_LENGTH}
             value={formData.description}
             onChange={handleChange}
             placeholder="Describí qué ocurrió, cuándo se detectó y si afecta la operación..."
             className="form-control"
+            aria-invalid={Boolean(errors.description)}
+            aria-describedby={
+              errors.description
+                ? "description-error description-counter"
+                : "description-counter"
+            }
           />
 
-          {errors.description ? (
-            <p className="text-sm font-medium text-(--status-critical)">
-              {errors.description}
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            {errors.description ? (
+              <p
+                id="description-error"
+                className="text-sm font-medium text-(--status-critical)"
+              >
+                {errors.description}
+              </p>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+
+            <p
+              id="description-counter"
+              className="text-sm font-medium text-(--text-muted)"
+            >
+              {formData.description.length} / {INCIDENT_DESCRIPTION_MAX_LENGTH}{" "}
+              caracteres
             </p>
-          ) : null}
+          </div>
         </div>
 
         {errorMessage ? (
           <div
-            className="rounded-md border border-[rgba(220,38,38,0.28)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm font-medium text-(--status-critical)"
+            className="max-w-full wrap-break-word rounded-md border border-[rgba(220,38,38,0.28)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm font-medium text-(--status-critical)"
             role="alert"
           >
             {errorMessage}
-          </div>
-        ) : null}
-
-        {successMessage ? (
-          <div
-            className="rounded-md border border-[rgba(45,106,79,0.28)] bg-[rgba(45,106,79,0.08)] px-4 py-3 text-sm font-medium text-(--status-resolved)"
-            role="status"
-          >
-            {successMessage}
           </div>
         ) : null}
 
@@ -267,37 +438,6 @@ export default function IncidentForm() {
           {isSubmitting ? "Registrando..." : "Registrar incidente"}
         </button>
       </form>
-
-      {lastSubmittedIncident ? (
-        <section className="panel mt-6 p-5">
-          <div className="border-l-4 border-(--status-resolved) pl-4">
-            <p className="page-eyebrow">Incidente creado</p>
-
-            <h2 className="text-lg font-bold text-(--text-primary)">
-              Registro guardado en modo demo
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-(--text-muted)">
-              El incidente fue guardado localmente. Ya puede verse en el
-              listado, dashboard y reportes.
-            </p>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <Link href="/incidents" className="btn-primary w-fit">
-              Ver listado
-            </Link>
-
-            <Link href="/dashboard" className="btn-secondary w-fit">
-              Ver dashboard
-            </Link>
-          </div>
-
-          <pre className="mt-4 max-h-72 overflow-x-auto rounded-md border border-(--border-muted) bg-(--surface-soft) p-4 text-xs leading-6 text-(--text-secondary)">
-            {JSON.stringify(lastSubmittedIncident, null, 2)}
-          </pre>
-        </section>
-      ) : null}
     </div>
   );
 }
@@ -308,6 +448,8 @@ export default function IncidentForm() {
  * Evita repetir estilos y mantiene consistencia visual entre campos.
  */
 function TextField({ id, name, label, value, onChange, error, placeholder }) {
+  const errorId = `${id}-error`;
+
   return (
     <div className="form-group">
       <label htmlFor={id} className="form-label">
@@ -322,10 +464,15 @@ function TextField({ id, name, label, value, onChange, error, placeholder }) {
         onChange={onChange}
         placeholder={placeholder}
         className="form-control"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
       />
 
       {error ? (
-        <p className="text-sm font-medium text-(--status-critical)">
+        <p
+          id={errorId}
+          className="text-sm font-medium text-(--status-critical)"
+        >
           {error}
         </p>
       ) : null}
@@ -348,6 +495,8 @@ function SelectField({
   options,
   placeholder,
 }) {
+  const errorId = `${id}-error`;
+
   return (
     <div className="form-group">
       <label htmlFor={id} className="form-label">
@@ -360,6 +509,8 @@ function SelectField({
         value={value}
         onChange={onChange}
         className="form-control"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
       >
         <option value="">{placeholder}</option>
 
@@ -371,7 +522,10 @@ function SelectField({
       </select>
 
       {error ? (
-        <p className="text-sm font-medium text-(--status-critical)">
+        <p
+          id={errorId}
+          className="text-sm font-medium text-(--status-critical)"
+        >
           {error}
         </p>
       ) : null}
