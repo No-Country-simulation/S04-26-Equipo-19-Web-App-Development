@@ -217,7 +217,7 @@ export default function IncidentForm() {
           </h2>
 
           <p
-            className="mt-2 max-w-full break-words text-sm leading-6 text-(--text-muted)"
+            className="mt-2 max-w-full wrap-break-word text-sm leading-6 text-(--text-muted)"
             role="status"
           >
             {successMessage}
@@ -234,21 +234,21 @@ export default function IncidentForm() {
 
           <div className="min-w-0">
             <dt className="font-bold text-(--text-primary)">Tipo</dt>
-            <dd className="mt-1 break-words text-(--text-secondary)">
+            <dd className="mt-1 wrap-break-wordword text-(--text-secondary)">
               {lastSubmittedIncident.type}
             </dd>
           </div>
 
           <div className="min-w-0">
             <dt className="font-bold text-(--text-primary)">Área</dt>
-            <dd className="mt-1 break-words text-(--text-secondary)">
+            <dd className="mt-1 wrap-break-word text-(--text-secondary)">
               {lastSubmittedIncident.area}
             </dd>
           </div>
 
           <div className="min-w-0">
             <dt className="font-bold text-(--text-primary)">Prioridad</dt>
-            <dd className="mt-1 break-words text-(--text-secondary)">
+            <dd className="mt-1 wrap-break-word text-(--text-secondary)">
               {lastSubmittedIncident.priority}
             </dd>
           </div>
@@ -423,7 +423,7 @@ export default function IncidentForm() {
 
         {errorMessage ? (
           <div
-            className="max-w-full break-words rounded-md border border-[rgba(220,38,38,0.28)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm font-medium text-(--status-critical)"
+            className="max-w-full wrap-break-word rounded-md border border-[rgba(220,38,38,0.28)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm font-medium text-(--status-critical)"
             role="alert"
           >
             {errorMessage}
