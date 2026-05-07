@@ -69,7 +69,7 @@ export default function IncidentsPage() {
           {incidents.map((incident) => (
             <article
               key={incident.id}
-              className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>

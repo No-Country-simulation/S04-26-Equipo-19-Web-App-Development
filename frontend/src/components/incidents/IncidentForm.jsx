@@ -10,23 +10,26 @@ import {
   incidentTypes,
   initialIncidentFormState,
 } from "@/constants/incidentOptions";
+import { createIncident } from "@/lib/api";
 import { createLocalIncident } from "@/lib/incidentStorage";
+
+const CONNECTION_ERROR_MESSAGE =
+  "Error de conexión. No se pudo registrar el incidente. Revisá tu conexión e intentá nuevamente.";
 
 /**
  * Formulario principal para reportar incidentes.
  *
- * Por ahora trabaja en modo demo, sin backend.
- * Cuando el usuario registra un incidente, lo guardamos en localStorage para
- * que aparezca en listado, dashboard y reportes.
- *
- * En el futuro, createLocalIncident será reemplazado por una llamada:
- * POST /api/incidents
+ * Primero intenta registrar el incidente mediante una petición HTTP real.
+ * Solo si la petición responde correctamente, persiste una copia local para
+ * mantener funcionando el flujo demo de listado, dashboard y reportes.
  */
 export default function IncidentForm() {
   const [formData, setFormData] = useState(initialIncidentFormState);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [lastSubmittedIncident, setLastSubmittedIncident] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /**
    * Actualiza el estado del formulario usando el atributo "name" de cada input.
@@ -39,23 +42,17 @@ export default function IncidentForm() {
       [name]: value,
     }));
 
-    /**
-     * Si el usuario corrige un campo, limpiamos solo ese error.
-     * Esto mejora UX sin borrar errores de otros campos.
-     */
     setErrors((currentErrors) => ({
       ...currentErrors,
       [name]: "",
     }));
 
     setSuccessMessage("");
+    setErrorMessage("");
   }
 
   /**
-   * Validación mínima del lado cliente.
-   *
-   * Esto mejora la experiencia del usuario, pero no reemplaza validaciones
-   * reales del backend cuando exista Django.
+   * Valida los campos obligatorios antes de intentar enviar la petición.
    */
   function validateForm() {
     const newErrors = {};
@@ -97,7 +94,14 @@ export default function IncidentForm() {
     return newErrors;
   }
 
-  function handleSubmit(event) {
+  /**
+   * Envía el formulario.
+   *
+   * Si la petición HTTP falla, no se limpia el formulario y no se confirma
+   * un registro ficticio. Esto corrige el comportamiento reportado por QA
+   * en modo offline.
+   */
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const validationErrors = validateForm();
@@ -105,17 +109,32 @@ export default function IncidentForm() {
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setSuccessMessage("");
+      setErrorMessage("");
       return;
     }
 
-    const newIncident = createLocalIncident(formData);
+    setIsSubmitting(true);
+    setSuccessMessage("");
+    setErrorMessage("");
 
-    setLastSubmittedIncident(newIncident);
-    setSuccessMessage(
-      "Incidente registrado correctamente. Ya está disponible en el listado, dashboard y reportes."
-    );
-    setFormData(initialIncidentFormState);
-    setErrors({});
+    try {
+      await createIncident(formData);
+
+      const newIncident = createLocalIncident(formData);
+
+      setLastSubmittedIncident(newIncident);
+      setSuccessMessage(
+        "Incidente registrado correctamente. Ya está disponible en el listado, dashboard y reportes."
+      );
+      setFormData(initialIncidentFormState);
+      setErrors({});
+    } catch (error) {
+      setLastSubmittedIncident(null);
+      setSuccessMessage("");
+      setErrorMessage(error?.message || CONNECTION_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -216,36 +235,49 @@ export default function IncidentForm() {
           />
 
           {errors.description ? (
-            <p className="text-sm font-medium text-[var(--status-critical)]">
+            <p className="text-sm font-medium text-(--status-critical)">
               {errors.description}
             </p>
           ) : null}
         </div>
 
+        {errorMessage ? (
+          <div
+            className="rounded-md border border-[rgba(220,38,38,0.28)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm font-medium text-(--status-critical)"
+            role="alert"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
+
         {successMessage ? (
-          <div className="rounded-[var(--radius-md)] border border-[rgba(45,106,79,0.28)] bg-[rgba(45,106,79,0.08)] px-4 py-3 text-sm font-medium text-[var(--status-resolved)]">
+          <div
+            className="rounded-md border border-[rgba(45,106,79,0.28)] bg-[rgba(45,106,79,0.08)] px-4 py-3 text-sm font-medium text-(--status-resolved)"
+            role="status"
+          >
             {successMessage}
           </div>
         ) : null}
 
         <button
-    type="submit"
-    className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-base font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200 md:w-auto"
-  >
-    Registrar incidente
-  </button>
+          type="submit"
+          disabled={isSubmitting}
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-base font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+        >
+          {isSubmitting ? "Registrando..." : "Registrar incidente"}
+        </button>
       </form>
 
       {lastSubmittedIncident ? (
         <section className="panel mt-6 p-5">
-          <div className="border-l-4 border-[var(--status-resolved)] pl-4">
+          <div className="border-l-4 border-(--status-resolved) pl-4">
             <p className="page-eyebrow">Incidente creado</p>
 
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">
+            <h2 className="text-lg font-bold text-(--text-primary)">
               Registro guardado en modo demo
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+            <p className="mt-2 text-sm leading-6 text-(--text-muted)">
               El incidente fue guardado localmente. Ya puede verse en el
               listado, dashboard y reportes.
             </p>
@@ -261,7 +293,7 @@ export default function IncidentForm() {
             </Link>
           </div>
 
-          <pre className="mt-4 max-h-72 overflow-x-auto rounded-[var(--radius-md)] border border-[var(--border-muted)] bg-[var(--surface-soft)] p-4 text-xs leading-6 text-[var(--text-secondary)]">
+          <pre className="mt-4 max-h-72 overflow-x-auto rounded-md border border-(--border-muted) bg-(--surface-soft) p-4 text-xs leading-6 text-(--text-secondary)">
             {JSON.stringify(lastSubmittedIncident, null, 2)}
           </pre>
         </section>
@@ -275,15 +307,7 @@ export default function IncidentForm() {
  *
  * Evita repetir estilos y mantiene consistencia visual entre campos.
  */
-function TextField({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-  error,
-  placeholder,
-}) {
+function TextField({ id, name, label, value, onChange, error, placeholder }) {
   return (
     <div className="form-group">
       <label htmlFor={id} className="form-label">
@@ -301,7 +325,7 @@ function TextField({
       />
 
       {error ? (
-        <p className="text-sm font-medium text-[var(--status-critical)]">
+        <p className="text-sm font-medium text-(--status-critical)">
           {error}
         </p>
       ) : null}
@@ -347,7 +371,7 @@ function SelectField({
       </select>
 
       {error ? (
-        <p className="text-sm font-medium text-[var(--status-critical)]">
+        <p className="text-sm font-medium text-(--status-critical)">
           {error}
         </p>
       ) : null}
