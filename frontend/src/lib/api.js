@@ -1,18 +1,13 @@
 import { incidents } from "@/data/incidents";
 
+const INCIDENTS_ENDPOINT = "/api/incidents";
+
 /**
  * Capa temporal de acceso a datos.
  *
- * Actualmente estas funciones devuelven información desde mock data local.
- * La idea es que los componentes y páginas llamen a funciones de este archivo
- * en vez de depender directamente de "@/data/incidents".
- *
- * Cuando el backend Django esté disponible, reemplazamos la lógica interna
- * por llamadas HTTP reales sin tener que reescribir toda la UI.
- *
- * Ejemplo futuro:
- * const response = await fetch(`${API_URL}/incidents`);
- * return response.json();
+ * Actualmente algunas lecturas todavía usan mock data local.
+ * Las operaciones de escritura pasan por una ruta API interna para poder
+ * detectar errores reales de red, servidor u offline antes de confirmar éxito.
  */
 
 /**
@@ -36,25 +31,44 @@ export async function getIncidentById(id) {
 }
 
 /**
- * Crea un nuevo incidente.
+ * Crea un nuevo incidente usando una petición HTTP real.
  *
- * Por ahora no persiste datos porque seguimos trabajando con mock data.
- * Esta función queda como contrato inicial para conectar luego el formulario
- * de creación con el backend.
+ * Esto permite que el frontend detecte correctamente errores de red,
+ * modo offline o fallos del servidor antes de mostrar éxito al usuario.
  *
  * Futuro endpoint esperado:
  * POST /api/incidents
  */
 export async function createIncident(incidentData) {
-  console.warn(
-    "createIncident todavía no persiste datos. Pendiente integración con backend.",
-    incidentData
-  );
+  try {
+    const response = await fetch(INCIDENTS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(incidentData),
+      cache: "no-store",
+    });
 
-  return {
-    id: crypto.randomUUID(),
-    ...incidentData,
-  };
+    const responseData = await safelyReadJson(response);
+
+    if (!response.ok) {
+      throw new Error(
+        responseData?.message ||
+          "No se pudo registrar el incidente. Intentá nuevamente."
+      );
+    }
+
+    return responseData.incident;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        "Error de conexión. No se pudo registrar el incidente. Revisá tu conexión e intentá nuevamente."
+      );
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -82,4 +96,15 @@ export async function assignTechnicianToIncident(incidentId, technicianData) {
     assignedTo: technicianData.name,
     status: "En proceso",
   };
+}
+
+/**
+ * Lee JSON de una respuesta HTTP sin romper si el body viene vacío.
+ */
+async function safelyReadJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }

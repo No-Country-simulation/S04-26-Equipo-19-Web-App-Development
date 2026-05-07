@@ -73,7 +73,7 @@ export default function HomePage() {
     <section className="min-h-full bg-slate-50 px-5 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Hero principal */}
-        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.35fr_0.65fr] lg:p-12">
             <div className="max-w-4xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-black text-slate-700">
@@ -110,7 +110,7 @@ export default function HomePage() {
             </div>
 
             {/* Panel lateral informativo con contraste reforzado */}
-            <aside className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+            <aside className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-700">
                 Estado del MVP
               </p>
@@ -149,7 +149,7 @@ export default function HomePage() {
           {summaryCards.map((card) => (
             <article
               key={card.label}
-              className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm"
+              className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
             >
               <p className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">
                 {card.label}
@@ -167,7 +167,7 @@ export default function HomePage() {
         </section>
 
         {/* Actividad reciente */}
-        <section className="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
