@@ -1,11 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLA USTED ES UNA PERSONA :V</title>
-</head>
-<body>
-    <p>Bienvenido, {{ user.username }}</p>
-</body>
-</html>
+{% if reporte %}
+
+<h1>Reporte asignado</h1>
+
+<p>{{ reporte.tipo_incidente }}</p>
+<p>{{ reporte.area }}</p>
+<p>{{ reporte.descripcion }}</p>
+<p>{{ reporte.prioridad }}</p>
+
+<a href="{% url 'cerrar_reporte' reporte.id %}">
+    Cerrar reporte
+</a>
+
+{% else %}
+
+<h1>No tenés reportes asignados</h1>
+
+{% endif %}

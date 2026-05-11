@@ -9,6 +9,14 @@ from .models import Usuario
 from .utils import redirect_por_rol
 
 
+# pagina de inicio
+def inicio(request):
+
+    if request.user.is_authenticated:
+        return redirect_por_rol(request.user)
+
+    return render(request, "inicio.html")
+
 # Cierre de session
 def logout_view(request):
     logout(request)
