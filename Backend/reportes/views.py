@@ -32,24 +32,42 @@ from usuarios.models import Usuario  # agregá este import arriba del archivo
 @login_required
 @rol_requerido("operador")
 def crear_reporte(request):
+
     if request.method == "POST":
+
         form = ReporteForm(request.POST)
+
         if form.is_valid():
+
             reporte = form.save(commit=False)
 
-            # Asignar primer técnico disponible
-            tecnico = Usuario.objects.filter(rol="tecnico", ocupado=False).first()
+            # usuario automático
+            reporte.reportado_por = request.user
+
+            # técnico automático
+            tecnico = Usuario.objects.filter(
+                rol="tecnico",
+                activo=True
+            ).first()
+
             if tecnico:
-                reporte.tecnico = tecnico
-                tecnico.ocupado = True
-                tecnico.save()
+                reporte.asignado_a = tecnico
 
             reporte.save()
-            return redirect("reporte_detalles", id=reporte.id)
+
+            return redirect(
+                "reporte_detalles",
+                id=reporte.id
+            )
+
     else:
         form = ReporteForm()
 
-    return render(request, "crear_reporte.html", {"form": form})
+    return render(
+        request,
+        "crear_reporte.html",
+        {"form": form}
+    )
 
 
 
@@ -57,10 +75,38 @@ def crear_reporte(request):
 # detalle
 @login_required
 def reporte_detalles(request, id):
-    reporte = get_object_or_404(Reporte, id=id)
-    return render(request, "reporte_detalles.html", {"reporte": reporte})
 
+    reporte = get_object_or_404(
+        Reporte,
+        id=id
+    )
 
+    context = {
+        "reporte": reporte,
+
+        "titulo": reporte.titulo,
+        "area": reporte.area.nombre if reporte.area else "",
+        "tipo_incidente": reporte.get_tipo_incidente_display(),
+        "otro_tipo": reporte.otro_tipo,
+        "prioridad": reporte.get_prioridad_display(),
+        "turno": reporte.get_turno_display(),
+        "sector_ubicacion": reporte.sector_ubicacion,
+        "descripcion": reporte.descripcion,
+        "estado": reporte.get_estado_display(),
+
+        "reportado_por": reporte.reportado_por,
+        "tecnico": reporte.asignado_a,
+
+        "fecha_creacion": reporte.fecha_creacion,
+    }
+
+    return render(
+        request,
+        "reporte_detalles.html",
+        context
+    )
+
+    
 # SUPERVISOR
 @login_required
 @rol_requerido("supervisor")
@@ -74,7 +120,7 @@ def supervision(request):
 def resolver(request):
 
     reporte = Reporte.objects.filter(
-        tecnico=request.user,
+        asignado_a=request.user,
         estado="abierto"
     ).first()
 
@@ -96,13 +142,10 @@ def cerrar_reporte(request, id):
     reporte = get_object_or_404(
         Reporte,
         id=id,
-        tecnico=request.user
+        asignado_a=request.user
     )
 
     reporte.estado = "cerrado"
     reporte.save()
-
-    request.user.ocupado = False
-    request.user.save()
 
     return redirect("resolver")

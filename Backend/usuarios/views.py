@@ -54,7 +54,7 @@ def login_view(request):
         except Usuario.DoesNotExist:
             return render(request, "login.html", {"error": "Credenciales inválidas"})
 
-        user = authenticate(request, username=user_obj.username, password=password)
+        user = authenticate(request, username=user_obj.email, password=password)
 
         if user is not None:
             login(request, user)

@@ -5,15 +5,25 @@
     <title>Reporte Exitoso</title>
 </head>
 <body>
-    <h1>Detalle del Reporte</h1>
-    
-    <ul>
-        <li><strong>Tipo:</strong> {{ reporte.tipo_incidente }}</li>
-        <li><strong>Área:</strong> {{ reporte.area }}</li>
-        <li><strong>Prioridad:</strong> {{ reporte.prioridad }}</li>
-        <li><strong>Descripción:</strong> {{ reporte.descripcion }}</li>
-        <li><strong>Fecha:</strong> {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</li>
-    </ul>
+    <h1>{{ titulo }}</h1>
+
+    <p><strong>Área:</strong> {{ area }}</p>
+
+    <p><strong>Tipo:</strong> {{ tipo_incidente }}</p>
+
+    <p><strong>Prioridad:</strong> {{ prioridad }}</p>
+
+    <p><strong>Turno:</strong> {{ turno }}</p>
+
+    <p><strong>Ubicación:</strong> {{ sector_ubicacion }}</p>
+
+    <p><strong>Descripción:</strong> {{ descripcion }}</p>
+
+    <p><strong>Estado:</strong> {{ estado }}</p>
+
+    <p><strong>Reportado por:</strong> {{ reportado_por }}</p>
+
+    <p><strong>Técnico:</strong> {{ tecnico }}</p>
     
     <a href="{% url 'crear_reporte' %}">Crear otro reporte</a>
     <a href="{% url 'logout' %}">Cerrar sesión</a>
